@@ -1,0 +1,32 @@
+{
+  "intents": [
+    {
+      "intent": "GetNewFactIntent",
+      "slots": [
+      	{
+      		"name": "topic",
+      		"type": "LIST_OF_TOPICS"
+      	}
+      ]
+      
+    },
+    {
+      "intent": "AMAZON.HelpIntent"
+    },
+    {
+      "intent": "AMAZON.StopIntent"
+    },
+    {
+      "intent": "AMAZON.CancelIntent"
+    },
+    {
+      "intent": "RepeatIntent",
+      "slots": [
+      	{
+      		"name": "city",
+      		"type": "AMAZON.AT_CITY"
+      	}
+      ]
+    }
+  ]
+}

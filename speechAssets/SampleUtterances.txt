@@ -1,0 +1,18 @@
+GetNewFactIntent einen Fakt
+GetNewFactIntent einen Weltraumfakt
+GetNewFactIntent erzähl mir einen Fakt
+GetNewFactIntent erzähl mir einen Weltraumfakt
+GetNewFactIntent gib mir einen Fakt
+GetNewFactIntent gib mir einen Weltraumfakt
+GetNewFactIntent erzähl mir etwas
+
+GetNewFactIntent einen Fakt über {topic}
+GetNewFactIntent erzähl mir einen Fakt über {topic}
+GetNewFactIntent gib mir einen Fakt über {topic}
+GetNewFactIntent erzähl mir etwas über {topic}
+
+RepeatIntent Wiederhole {city}
+RepeatIntent Sage {city}
+RepeatIntent Sag {city}
+RepeatIntent Sprich mir nach {city}
+
