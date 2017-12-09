@@ -23,8 +23,16 @@
       "intent": "RepeatIntent",
       "slots": [
       	{
-      		"name": "city",
-      		"type": "AMAZON.AT_CITY"
+      		"name": "number",
+      		"type": "AMAZON.NUMBER"
+      	},
+      	{
+      		"name": "metric",
+      		"type": "LIST_OF_METRICS"
+      	},
+      	{
+      		"name": "metricAdj",
+      		"type": "LIST_OF_METRICS_ADJ"
       	}
       ]
     }

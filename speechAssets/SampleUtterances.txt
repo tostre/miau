@@ -11,8 +11,10 @@ GetNewFactIntent erzähl mir einen Fakt über {topic}
 GetNewFactIntent gib mir einen Fakt über {topic}
 GetNewFactIntent erzähl mir etwas über {topic}
 
-RepeatIntent Wiederhole {city}
-RepeatIntent Sage {city}
-RepeatIntent Sag {city}
-RepeatIntent Sprich mir nach {city}
+RepeatIntent Sage {number} {metric} {metricAdj}
+RepeatIntent Sage Folgendes {number} {metric} {metricAdj}
+RepeatIntent Wiederhole {number} {metric} {metricAdj}
+RepeatIntent Sprich mir nach {number} {metric} {metricAdj}
+
+BmiIntent Berechne den BMI für {height} {weight} {gender}
 

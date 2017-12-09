@@ -37,7 +37,15 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     private boolean activityTypeSet = false;
     private boolean activityModeSet = false;
     
+    private String onLaunchMessage = "Hallo, wie kann ich helfen?";
     
+    private String number = "";
+    private String metric = "";
+    private String metricAdj = "";
+    
+    private int weight = 0;
+    private int height = 0;
+    private String gender = "";    
     
     // Array mit Fakten
     private static final String[] SPACE_FACTS = new String[] {
@@ -56,16 +64,12 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     
     @Override
     public SpeechletResponse onLaunch(SpeechletRequestEnvelope<LaunchRequest> requestEnvelope) {
-        log.info("onLaunch requestId={}, sessionId={}", requestEnvelope.getRequest().getRequestId(),
-                requestEnvelope.getSession().getSessionId());
-        //return getNewFactResponse();
+        log.info("onLaunch requestId={}, sessionId={}", requestEnvelope.getRequest().getRequestId(), requestEnvelope.getSession().getSessionId());
         
-        
-        String speechText = "Willkommen bei den Fakten";
         // Create the Simple card content.
-        SimpleCard card = getSimpleCard("SpaceGeek", speechText);
+        SimpleCard card = getSimpleCard("SpaceGeek", onLaunchMessage);
         // Create the plain text output.
-        PlainTextOutputSpeech speech = getPlainTextOutputSpeech(speechText);
+        PlainTextOutputSpeech speech = getPlainTextOutputSpeech(onLaunchMessage);
 
         return SpeechletResponse.newTellResponse(speech, card);
     }
@@ -100,6 +104,10 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         switch(intentName) {
         case "GetNewFactIntent":
         	return getNewFactResponse(intent);
+        case "RepeatIntent":
+        	return repeat(intent);
+        case "BmiIntent": 
+        	return getWeightClass(intent); 
     	case "AMAZON.HelpIntent":
     		return getHelpResponse();
     	case "AMAZON.StopIntent":
@@ -110,43 +118,42 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     		outputSpeech = new PlainTextOutputSpeech();
             outputSpeech.setText("Tschüss");
             return SpeechletResponse.newTellResponse(outputSpeech);
-    	case "RepeatIntent":
-    		return repeat(intent);
         default: 
         	return getAskResponse("SpaceGeek", "Das wird nicht unterstützt.  VErsuche etwas anderes.");
         }
         
         	
     }
-
+    
+     
+    // Repeats a number and a metric
     private SpeechletResponse repeat(final Intent intent) {
     	// Get the slots from the intent.
         Map<String, Slot> slots = intent.getSlots();
-        Slot videoGameSlot = slots.get(CITY_SLOT);
-        String videoGameValue = videoGameSlot.getValue();
+        Slot numberSlot = slots.get("number");
+        Slot metricSlot = slots.get("metric");
+        Slot metricAdjSlot = slots.get("metricAdj");
+        
+        number = numberSlot.getValue();
+        metric = metricSlot.getValue();
+        metricAdj = metricAdjSlot.getValue();
     	
-    	String speechText = "Hallo" + videoGameValue;
-    	
-    	
-    	
-    	
-    	
+        String speechText = "Ok, bis dann!";
+        
+        if(number != "" && metric != "" && metricAdj != "") {
+        	if(number != null && metric != null  && metricAdj != null ) {
+        		speechText = "Ok, ich habe " + number + " " + metric + " " + metricAdj + " verstanden";
+        	}
+        	
+        }
     	
         // Create the plain text output.
         PlainTextOutputSpeech speech = getPlainTextOutputSpeech(speechText);
-        // Creates reprompt-speach
-        //Reprompt reprompt = getReprompt()
-        
-        
         //return SpeechletResponse.newTellResponse(speech, card);
         return SpeechletResponse.newTellResponse(speech);
         
     }
 
-    
-    
-    
-    
     // Gets random new fact from the list and returns to user.
     private SpeechletResponse getNewFactResponse(final Intent intent) {
     	// Get the slots from the intent.
@@ -191,6 +198,77 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         return SpeechletResponse.newTellResponse(speech, card);
     }
 
+    private SpeechletResponse getWeightClass(final Intent intent) {
+    	// Get the slots from the intent.
+        Map<String, Slot> slots = intent.getSlots();
+        Slot weightSlot = slots.get("weight");
+        Slot heightSlot = slots.get("height");
+        Slot genderSlot = slots.get("gender");
+        
+        weight = Integer.parseInt(weightSlot.getValue());
+        height = Integer.parseInt(heightSlot.getValue());
+        gender = genderSlot.getValue();
+        
+        int bmi = calculateBmi(weight, height);
+        String weightClass = calculateWeightClass(bmi, gender);
+        
+        String speechText = "Sie haben " + weightClass; 
+        
+     // Create the plain text output.
+        PlainTextOutputSpeech speech = getPlainTextOutputSpeech(speechText);
+        //return SpeechletResponse.newTellResponse(speech, card);
+        return SpeechletResponse.newTellResponse(speech);
+    }
+    
+    // Calculates an BMI
+    private int calculateBmi(int weight, int height) { 
+    	int bmi = weight/(height^2); 
+    	
+    	return bmi; 
+    	
+    }
+    
+    
+    private String calculateWeightClass(int bmi, String gender) {
+    	if(gender == "männlich" && bmi < 20){
+    			 return "Untergewicht";
+    	}
+    	if(gender == "männlich" && bmi > 20 && bmi <= 25){
+    			 return "Normalgewicht";
+    	}
+    	if(gender == "männlich" && bmi > 25 && bmi <= 30){
+    			 return "Übergewicht";
+    	}
+    	if(gender == "männlich" && bmi > 30 && bmi <= 40){
+    			 return "Adipositas";
+    	}
+    	if(gender == "männlich" && bmi > 41){
+    			 return "starke Adipositas";
+    	}
+    	
+    	if(gender == "weiblich" && bmi < 19){
+			 return "Untergewicht";
+    	}
+    	if(gender == "weiblich" && bmi > 19 && bmi <= 24){
+			 return "Normalgewicht";
+    	}
+    	if(gender == "weiblich" && bmi > 25 && bmi <= 30){
+			 return "Übergewicht";
+		}
+		if(gender == "weiblich" && bmi > 30 && bmi <= 40){
+			 return "Adipositas";
+		}
+		if(gender == "weiblich" && bmi > 40){
+			 return "starke Adipositas";
+		}
+    	
+    	return "Konnte nicht berechnet werden"; 
+    }
+    
+    
+    
+    
+    
     
     // Returns response for the help intent.
     private SpeechletResponse getHelpResponse() {
