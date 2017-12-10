@@ -9,10 +9,20 @@
  */
 package com.amazon.asksdk.spacegeek;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import com.amazon.speech.slu.Intent;
 import com.amazon.speech.slu.Slot;
@@ -45,7 +55,15 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     
     private int weight = 0;
     private int height = 0;
-    private String gender = "";    
+    private String gender = ""; 
+    
+    // user data
+    private String userName = "Maria";
+    // weather data
+    private String apiKey = "44956c0ccd5905a239c4ee266863eb06";
+    private String cityName = "Dortmund";
+    private int cityId = 2935517;
+    private String fetchWeatherUrl = "http://api.openweathermap.org/data/2.5/weather?id=2935517&APPID=44956c0ccd5905a239c4ee266863eb06";
     
     // Array mit Fakten
     private static final String[] SPACE_FACTS = new String[] {
@@ -66,11 +84,15 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     public SpeechletResponse onLaunch(SpeechletRequestEnvelope<LaunchRequest> requestEnvelope) {
         log.info("onLaunch requestId={}, sessionId={}", requestEnvelope.getRequest().getRequestId(), requestEnvelope.getSession().getSessionId());
         
+        String weather = getWeather(); 
+        
         // Create the Simple card content.
         SimpleCard card = getSimpleCard("SpaceGeek", onLaunchMessage);
         // Create the plain text output.
-        PlainTextOutputSpeech speech = getPlainTextOutputSpeech(onLaunchMessage);
+        PlainTextOutputSpeech speech = getPlainTextOutputSpeech(onLaunchMessage + " " + "Hier ist das Wetter: " + weather);
 
+        
+        
         return SpeechletResponse.newTellResponse(speech, card);
     }
 
@@ -88,9 +110,6 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         // any cleanup logic goes here
     }
     
-
-    
-
     @Override
     public SpeechletResponse onIntent(SpeechletRequestEnvelope<IntentRequest> requestEnvelope) {
         IntentRequest request = requestEnvelope.getRequest();
@@ -124,6 +143,44 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         
         	
     }
+    
+    
+    
+    private String getWeather(){
+    	//JSONParser parser = new JSONParser();
+        //URL url = new URL(fetchWeatherUrl);
+        //URLConnection connection = url.openConnection();
+        //BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+String weather = "Kein Wetter";
+        
+        InputStream inputStream;
+		try {
+			inputStream = new URL(fetchWeatherUrl).openStream();
+			BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
+	        StringBuilder sb = new StringBuilder();
+	        String line = "";
+	        while ((line = br.readLine()) != null) {
+            	sb.append(line);
+	        }
+	        
+	        inputStream.close();
+	        log.info("Nach StringBuilder");
+	        
+	        JSONObject json = new JSONObject(sb.toString());
+	        JSONArray jsonArray = json.getJSONArray("weather");
+	        JSONObject currentWeather = jsonArray.getJSONObject(0);
+	        System.out.println("MAAAAAIN: " + currentWeather.getString("main"));
+	        weather = currentWeather.getString("main");
+	        
+	        log.info(weather);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        
+        return weather;
+    }
+    
     
      
     // Repeats a number and a metric
@@ -181,12 +238,12 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
 	        	speechText = "Hier ist ein Fakt über den Weltraum: " + fact;
         		break;
     		default: 
-    			speechText = "Du hast kein Thema angegeben, Anfänger";
+    			speechText = "Du hast kein Thema angegeben, Anfänger, aber hier ist das Wetter " + getWeather();
     			break; 
             
             }
         } else {
-        	speechText = "Du hast kein Thema angegeben, Anfänger";
+        	speechText = "Du hast kein Thema angegeben, Anfänger, aber hier ist das Wetter" + getWeather();
         }
         
         	
