@@ -17,4 +17,5 @@ RepeatIntent Wiederhole {number} {metric} {metricAdj}
 RepeatIntent Sprich mir nach {number} {metric} {metricAdj}
 
 BmiIntent Berechne den BMI für {height} {weight} {gender}
+BmiIntent Gibt mir den BMI für {height} {weight} {gender}
 
