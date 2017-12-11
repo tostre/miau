@@ -61,9 +61,14 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     private String userName = "Maria";
     // weather data
     private String apiKey = "44956c0ccd5905a239c4ee266863eb06";
-    private String cityName = "Dortmund";
     private int cityId = 2935517;
+    private int weatherId;
     private String fetchWeatherUrl = "http://api.openweathermap.org/data/2.5/weather?id=2935517&APPID=44956c0ccd5905a239c4ee266863eb06";
+    private boolean goodWeather;
+    private String weatherDescription;
+    // Activity data
+    // 0 = good weather, ask user, 1 = bad weather, inside
+    private int activityLocation = 0;
     
     // Array mit Fakten
     private static final String[] SPACE_FACTS = new String[] {
@@ -126,7 +131,7 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         case "RepeatIntent":
         	return repeat(intent);
         case "BmiIntent": 
-        	return getWeightClass(intent); 
+        	return getHelpResponse();
     	case "AMAZON.HelpIntent":
     		return getHelpResponse();
     	case "AMAZON.StopIntent":
@@ -141,44 +146,80 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         	return getAskResponse("SpaceGeek", "Das wird nicht unterstützt.  VErsuche etwas anderes.");
         }
         
+        
+        
         	
     }
     
     
-    
+    // Fetch weather data and get weather description and if weather is good enough
+    // for going out
     private String getWeather(){
-    	//JSONParser parser = new JSONParser();
-        //URL url = new URL(fetchWeatherUrl);
-        //URLConnection connection = url.openConnection();
-        //BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-String weather = "Kein Wetter";
-        
-        InputStream inputStream;
+    	weatherDescription = "Ich konnte keine Daten zum jetzigen Wetter finden";
+    	weatherId = 0; 
+    	
+        // Fetch weather data from openWeatherMap
 		try {
-			inputStream = new URL(fetchWeatherUrl).openStream();
+			InputStream inputStream = new URL(fetchWeatherUrl).openStream();
 			BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
 	        StringBuilder sb = new StringBuilder();
 	        String line = "";
+	        
+	        // Build String from weather data json
 	        while ((line = br.readLine()) != null) {
             	sb.append(line);
 	        }
 	        
 	        inputStream.close();
-	        log.info("Nach StringBuilder");
-	        
+	        // Get weather id from weather data
 	        JSONObject json = new JSONObject(sb.toString());
 	        JSONArray jsonArray = json.getJSONArray("weather");
 	        JSONObject currentWeather = jsonArray.getJSONObject(0);
-	        System.out.println("MAAAAAIN: " + currentWeather.getString("main"));
-	        weather = currentWeather.getString("main");
-	        
-	        log.info(weather);
+	        weatherId = currentWeather.getInt("id");
+	       
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-        
-        return weather;
+		
+        // Set weather attributes 
+		if(weatherId >= 200 && weatherId < 300) {
+			// Gewitter
+			goodWeather = false; 
+			return weatherDescription = "gewittert es";
+		} else if(weatherId >= 300 && weatherId < 600) {
+			// leichter Regen
+			goodWeather = false; 
+			return weatherDescription = "regnet es";
+		} else if(weatherId >= 600 && weatherId < 700) {
+			// Schnee
+			goodWeather = false; 
+			return weatherDescription = "schneit es";
+		} else if(weatherId >= 700 && weatherId < 800) {
+			// Atmosphäre
+			goodWeather = false; 
+			return weatherDescription = "ist es neblig oder rauchig";
+		} else if(weatherId == 800) {
+			// Klar
+			goodWeather = true; 
+			return weatherDescription = "scheint die Sonne";
+		} else if(weatherId >= 801 && weatherId < 900) {
+			// Bewölkt
+			goodWeather = true; 
+			return weatherDescription = "ist es bewölkt";
+		} else if(weatherId >= 900 && weatherId < 910) {
+			// Extrem
+			goodWeather = false; 
+			return weatherDescription = "ist es wegen der Wetterbedingungen gefährlich raus zu gehen";
+		} else if (weatherId >= 951 && weatherId < 954) {
+			// Leichte Brise
+			goodWeather = true; 
+			return weatherDescription = "weht eine leichte Brise";
+		} else {
+			// Sehr windig
+			goodWeather = false; 
+			return weatherDescription = "weht der Wind sehr stark";
+		}
     }
     
     
@@ -238,12 +279,12 @@ String weather = "Kein Wetter";
 	        	speechText = "Hier ist ein Fakt über den Weltraum: " + fact;
         		break;
     		default: 
-    			speechText = "Du hast kein Thema angegeben, Anfänger, aber hier ist das Wetter " + getWeather();
+    			speechText = "Zur Zeit " + getWeather();
     			break; 
             
             }
         } else {
-        	speechText = "Du hast kein Thema angegeben, Anfänger, aber hier ist das Wetter" + getWeather();
+        	speechText = "Zur Zeit " + getWeather();
         }
         
         	
@@ -255,72 +296,9 @@ String weather = "Kein Wetter";
         return SpeechletResponse.newTellResponse(speech, card);
     }
 
-    private SpeechletResponse getWeightClass(final Intent intent) {
-    	// Get the slots from the intent.
-        Map<String, Slot> slots = intent.getSlots();
-        Slot weightSlot = slots.get("weight");
-        Slot heightSlot = slots.get("height");
-        Slot genderSlot = slots.get("gender");
-        
-        weight = Integer.parseInt(weightSlot.getValue());
-        height = Integer.parseInt(heightSlot.getValue());
-        gender = genderSlot.getValue();
-        
-        int bmi = calculateBmi(weight, height);
-        String weightClass = calculateWeightClass(bmi, gender);
-        
-        String speechText = "Sie haben " + weightClass; 
-        
-     // Create the plain text output.
-        PlainTextOutputSpeech speech = getPlainTextOutputSpeech(speechText);
-        //return SpeechletResponse.newTellResponse(speech, card);
-        return SpeechletResponse.newTellResponse(speech);
-    }
-    
-    // Calculates an BMI
-    private int calculateBmi(int weight, int height) { 
-    	int bmi = weight/(height^2); 
-    	
-    	return bmi; 
-    	
-    }
     
     
-    private String calculateWeightClass(int bmi, String gender) {
-    	if(gender == "männlich" && bmi < 20){
-    			 return "Untergewicht";
-    	}
-    	if(gender == "männlich" && bmi > 20 && bmi <= 25){
-    			 return "Normalgewicht";
-    	}
-    	if(gender == "männlich" && bmi > 25 && bmi <= 30){
-    			 return "Übergewicht";
-    	}
-    	if(gender == "männlich" && bmi > 30 && bmi <= 40){
-    			 return "Adipositas";
-    	}
-    	if(gender == "männlich" && bmi > 41){
-    			 return "starke Adipositas";
-    	}
-    	
-    	if(gender == "weiblich" && bmi < 19){
-			 return "Untergewicht";
-    	}
-    	if(gender == "weiblich" && bmi > 19 && bmi <= 24){
-			 return "Normalgewicht";
-    	}
-    	if(gender == "weiblich" && bmi > 25 && bmi <= 30){
-			 return "Übergewicht";
-		}
-		if(gender == "weiblich" && bmi > 30 && bmi <= 40){
-			 return "Adipositas";
-		}
-		if(gender == "weiblich" && bmi > 40){
-			 return "starke Adipositas";
-		}
-    	
-    	return "Konnte nicht berechnet werden"; 
-    }
+   
     
     
     
