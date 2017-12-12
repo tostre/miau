@@ -1,27 +1,16 @@
-/**
-    Copyright 2014-2015 Amazon.com, Inc. or its affiliates. All Rights Reserved.
-
-    Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance with the License. A copy of the License is located at
-
-        http://aws.amazon.com/apache2.0/
-
-    or in the "license" file accompanying this file. This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
- */
 package com.amazon.asksdk.spacegeek;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
+import java.util.ArrayList;
 import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.amazon.speech.slu.Intent;
@@ -38,37 +27,68 @@ import com.amazon.speech.ui.Reprompt;
 import com.amazon.speech.ui.SimpleCard;
 import com.amazon.speech.ui.OutputSpeech;
 
-// most basic example of how to handle Alexa Skill requests
 public class SpaceGeekSpeechlet implements SpeechletV2 {
     private static final Logger log = LoggerFactory.getLogger(SpaceGeekSpeechlet.class);
+    
+    // Slot data
     private static final String TOPIC_SLOT = "topic";
     private static final String CITY_SLOT = "city";
-    private boolean activityLocationSet = false;
-    private boolean activityTypeSet = false;
-    private boolean activityModeSet = false;
+    
+    
+    
+    
     
     private String onLaunchMessage = "Hallo, wie kann ich helfen?";
-    
     private String number = "";
     private String metric = "";
     private String metricAdj = "";
     
-    private int weight = 0;
-    private int height = 0;
-    private String gender = ""; 
     
+    
+    
+    // Speech related variables
+    String speechText;
+    String helpText = "Ich kann verschiedene Aktivitäten, Spiele und Übungen, drinnen oder draußen, vorschlagen";
+    String taskDescription = "Hallo, ich kann Empfehlungen für eine Tagesaktivität geben";
+    
+    private static final String[] GREETINGS_FORMAL = new String[] {
+    		"Hallo, wie kann ich Ihnen helfen",
+    		"Was kann ich für Sie tun",
+    		"Kann ich Ihnen eine Aktivität für heute empfehlen",
+    };
+    private static final String[] GREETINGS_INFORMAL = new String[] {
+    		"Hallo, wie kann ich Dir helfen",
+    		"Was kann ich für Dich tun",
+    		"Kann ich Dir eine Aktivität für heute empfehlen",
+    };
+    
+    // Session data
+    String requestId;
+    String sessionId;
     // user data
-    private String userName = "Maria";
-    // weather data
-    private String apiKey = "44956c0ccd5905a239c4ee266863eb06";
-    private int cityId = 2935517;
-    private int weatherId;
-    private String fetchWeatherUrl = "http://api.openweathermap.org/data/2.5/weather?id=2935517&APPID=44956c0ccd5905a239c4ee266863eb06";
-    private boolean goodWeather;
-    private String weatherDescription;
+    private String userNameTell = "Maria";
+    private String userNameAsk = "Maria?";
+    private boolean formalSpeech = true; 
     // Activity data
-    // 0 = good weather, ask user, 1 = bad weather, inside
-    private int activityLocation = 0;
+    private String activityType; // exercise, game, activity
+    private boolean activityRelaxed; // true, false
+    private String activityLocation; // inside, outside, both
+    private boolean activityWithFriends; // true, false
+    private ArrayList<String> activityExcludeBodypart = new ArrayList<>(); // Exclude activities that put strain on these body parts
+    private ArrayList<String> activityIncludeBodypart = new ArrayList<>(); // Choose activities that include these body parts
+    // Actity data set 
+    private boolean activityTypeSet; 
+    private boolean activityRelaxedSet; 
+    private boolean activityLocationSet; 
+    private boolean activityWithFriendsSet; 
+    private boolean activityExcludeBodypartSet; 
+    private boolean activityIncludeBodypartSet; 
+    private boolean weatherSet; 
+    // weather data
+    private String fetchWeatherUrl = "http://api.openweathermap.org/data/2.5/weather?id=2935517&APPID=44956c0ccd5905a239c4ee266863eb06";
+    private String weatherDescription;
+    private boolean goodWeather;
+    
     
     // Array mit Fakten
     private static final String[] SPACE_FACTS = new String[] {
@@ -76,8 +96,6 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
             "Venus rotiert gegen den Uhrzeigersinn.",
             "Die Erde ist als einziger Planet nicht nach einem Gott benannt."
     };
-    
- // Array mit Fakten
     private static final String[] CARS_FACTS = new String[] {
             "Ein Auto fährt.",
             "Autos verbrauchen Benzin.",
@@ -85,19 +103,26 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     };
     
     
+    
+    
+    
     @Override
     public SpeechletResponse onLaunch(SpeechletRequestEnvelope<LaunchRequest> requestEnvelope) {
-        log.info("onLaunch requestId={}, sessionId={}", requestEnvelope.getRequest().getRequestId(), requestEnvelope.getSession().getSessionId());
+        requestId = requestEnvelope.getRequest().getRequestId();
+        sessionId = requestEnvelope.getSession().getSessionId();
+        goodWeather = getWeather(); 
         
-        String weather = getWeather(); 
-        
+        if(formalSpeech) {
+        	speechText = GREETINGS_FORMAL[(int) Math.floor(Math.random() * GREETINGS_FORMAL.length)];
+        } else {
+        	speechText = GREETINGS_INFORMAL[(int) Math.floor(Math.random() * GREETINGS_INFORMAL.length)];
+        }
+    	
         // Create the Simple card content.
-        SimpleCard card = getSimpleCard("SpaceGeek", onLaunchMessage);
+        SimpleCard card = getSimpleCard("exEins", taskDescription);
         // Create the plain text output.
-        PlainTextOutputSpeech speech = getPlainTextOutputSpeech(onLaunchMessage + " " + "Hier ist das Wetter: " + weather);
+        PlainTextOutputSpeech speech = getPlainTextOutputSpeech(speechText);
 
-        
-        
         return SpeechletResponse.newTellResponse(speech, card);
     }
 
@@ -154,9 +179,9 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     
     // Fetch weather data and get weather description and if weather is good enough
     // for going out
-    private String getWeather(){
+    private boolean getWeather(){
     	weatherDescription = "Ich konnte keine Daten zum jetzigen Wetter finden";
-    	weatherId = 0; 
+    	int weatherId = 0; 
     	
         // Fetch weather data from openWeatherMap
 		try {
@@ -176,49 +201,54 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
 	        JSONArray jsonArray = json.getJSONArray("weather");
 	        JSONObject currentWeather = jsonArray.getJSONObject(0);
 	        weatherId = currentWeather.getInt("id");
-	       
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		} catch (IOException e) {e.printStackTrace();}
 		
         // Set weather attributes 
 		if(weatherId >= 200 && weatherId < 300) {
 			// Gewitter
-			goodWeather = false; 
-			return weatherDescription = "gewittert es";
+			weatherDescription = "gewittert es";
+			weatherSet = true; 
+			return goodWeather = false; 
 		} else if(weatherId >= 300 && weatherId < 600) {
 			// leichter Regen
-			goodWeather = false; 
-			return weatherDescription = "regnet es";
+			weatherDescription = "regnet es";
+			weatherSet = true; 
+			return goodWeather = false; 
 		} else if(weatherId >= 600 && weatherId < 700) {
 			// Schnee
-			goodWeather = false; 
-			return weatherDescription = "schneit es";
+			weatherDescription = "schneit es";
+			weatherSet = true; 
+			return goodWeather = false; 
 		} else if(weatherId >= 700 && weatherId < 800) {
 			// Atmosphäre
-			goodWeather = false; 
-			return weatherDescription = "ist es neblig oder rauchig";
+			weatherDescription = "ist es neblig oder rauchig";
+			weatherSet = true; 
+			return goodWeather = false; 
 		} else if(weatherId == 800) {
 			// Klar
-			goodWeather = true; 
-			return weatherDescription = "scheint die Sonne";
+			weatherDescription = "scheint die Sonne";
+			weatherSet = true; 
+			return goodWeather = true; 
 		} else if(weatherId >= 801 && weatherId < 900) {
 			// Bewölkt
-			goodWeather = true; 
-			return weatherDescription = "ist es bewölkt";
+			weatherDescription = "ist es bewölkt";
+			weatherSet = true; 
+			return goodWeather = true; 
 		} else if(weatherId >= 900 && weatherId < 910) {
 			// Extrem
-			goodWeather = false; 
-			return weatherDescription = "ist es wegen der Wetterbedingungen gefährlich raus zu gehen";
+			weatherDescription = "ist es wegen der Wetterbedingungen gefährlich raus zu gehen";
+			weatherSet = true; 
+			return goodWeather = false; 
 		} else if (weatherId >= 951 && weatherId < 954) {
 			// Leichte Brise
-			goodWeather = true; 
-			return weatherDescription = "weht eine leichte Brise";
+			weatherDescription = "weht eine leichte Brise";
+			weatherSet = true; 
+			return goodWeather = true; 
 		} else {
 			// Sehr windig
-			goodWeather = false; 
-			return weatherDescription = "weht der Wind sehr stark";
+			weatherDescription = "weht der Wind sehr stark";
+			weatherSet = true; 
+			return goodWeather = false; 
 		}
     }
     
