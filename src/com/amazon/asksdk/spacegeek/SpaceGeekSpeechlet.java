@@ -185,7 +185,7 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     private SpeechletResponse setName(Intent intent) {
     	// Get the slots from the intent.
         Map<String, Slot> slots = intent.getSlots();
-        Slot username = slots.get("name");
+        Slot username = slots.get("username");
         String name = username.getValue();
         
         userNameTell = name + "!";
