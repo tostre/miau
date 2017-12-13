@@ -1,0 +1,23 @@
+{
+  "types": [
+    {
+      "name": "MEDIA_TYPE",
+      "values": [
+        {
+          "id": "SIE",
+          "name": {
+            "value": "siezen",
+            "synonyms": ["gesiezt","Sie","Nachname", "Nachnamen"]
+          }
+        },
+        {
+          "id": "DU",
+          "name": {
+            "value": "duzen",
+            "synonyms": ["geduzt","Du","Vorname", "Vornamen"]
+          }
+        }
+      ]
+    }
+  ]
+}

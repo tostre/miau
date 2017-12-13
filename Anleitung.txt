@@ -1,0 +1,11 @@
+Gehe in den Projektordner mit der POM.xml
+
+Öffne PowerShell
+
+Befehl: 
+mvn assembly:assembly -DdescriptorId=jar-with-dependencies package
+
+Lade die jar aus dem target-folder ins aws
+
+Setze den Handler auf die SpeechletRequestStreamHandler-Klasse
+(zB helloworld.HelloWorldSpeechletRequestStreamHandler)

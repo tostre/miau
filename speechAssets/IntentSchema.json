@@ -19,22 +19,23 @@
     {
       "intent": "AMAZON.CancelIntent"
     },
+    { 
+    	"intent": "SetFormalSpeechIntent",
+    	"slots": [
+	    	{
+	    		"name": "formalSpeechType",
+	    		"type": "LIST_OF_FORMAL_SPEECH_TYPES"
+	    	}
+    	]
+    },
     {
-      "intent": "RepeatIntent",
-      "slots": [
-      	{
-      		"name": "number",
-      		"type": "AMAZON.NUMBER"
-      	},
-      	{
-      		"name": "metric",
-      		"type": "LIST_OF_METRICS"
-      	},
-      	{
-      		"name": "metricAdj",
-      		"type": "LIST_OF_METRICS_ADJ"
-      	}
-      ]
+    	"intent": "SetNameIntent",
+    	"slots":[
+    		{
+    			"name": "username",
+    			"type": "AMAZON.DE_FIRST_NAME"
+    		}
+    	]
     }
   ]
 }

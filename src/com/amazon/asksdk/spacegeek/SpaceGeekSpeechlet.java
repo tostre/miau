@@ -69,6 +69,7 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     private String userNameTell = "Maria";
     private String userNameAsk = "Maria?";
     private boolean formalSpeech = true; 
+    private boolean firstMeeting = true; 
     // Activity data
     private String activityType; // exercise, game, activity
     private boolean activityRelaxed; // true, false
@@ -157,6 +158,10 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         	return repeat(intent);
         case "BmiIntent": 
         	return getHelpResponse();
+        case "SetFormalSpeechIntent":
+        	return setFormalSpeech(intent); 
+        case "SetNameIntent":
+        	return setName(intent);
     	case "AMAZON.HelpIntent":
     		return getHelpResponse();
     	case "AMAZON.StopIntent":
@@ -173,12 +178,45 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         
         
         
+        
         	
     }
     
+    private SpeechletResponse setName(Intent intent) {
+    	// Get the slots from the intent.
+        Map<String, Slot> slots = intent.getSlots();
+        Slot username = slots.get("name");
+        String name = username.getValue();
+        
+        userNameTell = name + "!";
+        userNameAsk = name + "?";
+        
+        if(firstMeeting) {
+        	return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech("Nett Dich kennen zu lernen " + userNameTell));
+        } else {
+        	return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech("Verstanden " + userNameTell));
+        }
+    }
     
-    // Fetch weather data and get weather description and if weather is good enough
-    // for going out
+    // Let's the user choose if they want to be "geduzt" or "gesiezt"
+    private SpeechletResponse setFormalSpeech(Intent intent) {
+    	// Get the slots from the intent.
+        Map<String, Slot> slots = intent.getSlots();
+        Slot formalSpeechStyle = slots.get("formalSpeechType");
+        
+        String style = formalSpeechStyle.getValue();
+        
+        if(style.equals("siezen")) {
+        	formalSpeech = true; 
+        	return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech("Verstanden, ich werde Sie ab jetzt Siezen " + userNameTell));
+        } else {
+        	formalSpeech = false;
+        	return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech("Verstanden, ich werden Sie ab jetzt Duzen " + userNameTell));
+        }
+    }
+    
+    
+    // Fetch weather data and get weather description and if weather is good enough for going out
     private boolean getWeather(){
     	weatherDescription = "Ich konnte keine Daten zum jetzigen Wetter finden";
     	int weatherId = 0; 

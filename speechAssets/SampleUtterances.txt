@@ -11,11 +11,28 @@ GetNewFactIntent erzähl mir einen Fakt über {topic}
 GetNewFactIntent gib mir einen Fakt über {topic}
 GetNewFactIntent erzähl mir etwas über {topic}
 
-RepeatIntent Sage {number} {metric} {metricAdj}
-RepeatIntent Sage Folgendes {number} {metric} {metricAdj}
-RepeatIntent Wiederhole {number} {metric} {metricAdj}
-RepeatIntent Sprich mir nach {number} {metric} {metricAdj}
 
-BmiIntent Berechne den BMI für {height} {weight} {gender}
-BmiIntent Gibt mir den BMI für {height} {weight} {gender}
 
+
+
+
+
+
+
+
+SetFormalSpeechIntent Ich möchte dass Du mich {formalSpeechType} 
+SetFormalSpeechIntent Ich möchte dass Sie mich {formalSpeechType} 
+SetFormalSpeechIntent {formalSpeechType} mich bitte 
+SetFormalSpeechIntent {formalSpeechType} Sie mich bitte 
+SetFormalSpeechIntent Ich möchte {formalSpeechType} werden
+SetFormalSpeechIntent Ich würde gerne {formalSpeechType} werden
+SetFormalSpeechIntent {formalSpeechType} bitte 
+
+SetNameIntent Ich möchte meinen Namen in {username} ändern
+SetNameIntent Ich möchte dass Du mich {username} nennst
+SetNameIntent Ich möchte dass Sie mich {username} nennen
+SetNameIntent Ändere meinen Namen in {username}
+SetNameIntent Ändern Sie meinen Namen in {username}
+SetNameIntent Bitte nenne mich ab jetzt {username} 
+SetNameIntent Bitte nennen Sie mich ab jetzt {username}
+SetNameIntent Ich heiße {username}
