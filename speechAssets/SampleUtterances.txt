@@ -36,3 +36,14 @@ SetNameIntent Ändern Sie meinen Namen in {username}
 SetNameIntent Bitte nenne mich ab jetzt {username} 
 SetNameIntent Bitte nennen Sie mich ab jetzt {username}
 SetNameIntent Ich heiße {username}
+
+GetExerciseIntent Gib mir eine Übung für den {bodypart}
+GetExerciseIntent Gib mir eine Übung für die {bodypart}
+GetExerciseIntent Geben Sie mir eine Übung für den {bodypart}
+GetExerciseIntent Geben Sie mir eine Übung für die {bodypart}
+GetExerciseIntent Ich möchte eine Übung für den {bodypart}
+GetExerciseIntent Ich möchte eine Übung für die {bodypart}
+GetExerciseIntent Ich will eine Übung für den {bodypart}
+GetExerciseIntent Ich will eine Übung für die {bodypart}
+GetExerciseIntent Eine Übung für den {bodypart} bitte
+GetExerciseIntent Eine Übung für die {bodypart} bitte

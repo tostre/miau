@@ -25,6 +25,8 @@ import com.amazon.speech.json.SpeechletRequestEnvelope;
 import com.amazon.speech.ui.PlainTextOutputSpeech;
 import com.amazon.speech.ui.Reprompt;
 import com.amazon.speech.ui.SimpleCard;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.amazon.speech.ui.OutputSpeech;
 
 public class SpaceGeekSpeechlet implements SpeechletV2 {
@@ -89,7 +91,9 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     private String fetchWeatherUrl = "http://api.openweathermap.org/data/2.5/weather?id=2935517&APPID=44956c0ccd5905a239c4ee266863eb06";
     private String weatherDescription;
     private boolean goodWeather;
-    
+    // database data
+    private AmazonDynamoDBClient dbclient;
+ 
     
     // Array mit Fakten
     private static final String[] SPACE_FACTS = new String[] {
@@ -109,15 +113,7 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     
     @Override
     public SpeechletResponse onLaunch(SpeechletRequestEnvelope<LaunchRequest> requestEnvelope) {
-        requestId = requestEnvelope.getRequest().getRequestId();
-        sessionId = requestEnvelope.getSession().getSessionId();
-        goodWeather = getWeather(); 
         
-        if(formalSpeech) {
-        	speechText = GREETINGS_FORMAL[(int) Math.floor(Math.random() * GREETINGS_FORMAL.length)];
-        } else {
-        	speechText = GREETINGS_INFORMAL[(int) Math.floor(Math.random() * GREETINGS_INFORMAL.length)];
-        }
     	
         // Create the Simple card content.
         SimpleCard card = getSimpleCard("exEins", taskDescription);
@@ -129,9 +125,9 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
 
     @Override
     public void onSessionStarted(SpeechletRequestEnvelope<SessionStartedRequest> requestEnvelope) {
-        log.info("onSessionStarted requestId={}, sessionId={}", requestEnvelope.getRequest().getRequestId(),
-                requestEnvelope.getSession().getSessionId());
-        // any initialization logic goes here
+        log.info("onSessionStarted requestId={}, sessionId={}", requestEnvelope.getRequest().getRequestId(), requestEnvelope.getSession().getSessionId());
+        
+        initializeComponents(requestEnvelope);
     }
     
     @Override
@@ -162,6 +158,8 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         	return setFormalSpeech(intent); 
         case "SetNameIntent":
         	return setName(intent);
+        case "GetExerciseIntent":
+        	return getExercise(intent);
     	case "AMAZON.HelpIntent":
     		return getHelpResponse();
     	case "AMAZON.StopIntent":
@@ -175,12 +173,30 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         default: 
         	return getAskResponse("SpaceGeek", "Das wird nicht unterstützt.  VErsuche etwas anderes.");
         }
-        
-        
-        
-        
-        	
     }
+    
+    private void initializeComponents(SpeechletRequestEnvelope<SessionStartedRequest> requestEnvelope) {
+    	requestId = requestEnvelope.getRequest().getRequestId();
+        sessionId = requestEnvelope.getSession().getSessionId();
+        goodWeather = getWeather(); 
+        
+        
+        if(formalSpeech) {
+        	speechText = GREETINGS_FORMAL[(int) Math.floor(Math.random() * GREETINGS_FORMAL.length)];
+        } else {
+        	speechText = GREETINGS_INFORMAL[(int) Math.floor(Math.random() * GREETINGS_INFORMAL.length)];
+        }
+    }
+    
+    private SpeechletResponse getExercise(Intent intent) {
+    	Map<String, Slot> slots = intent.getSlots();
+        Slot bodypart = slots.get("bodypart");
+        String part = bodypart.getValue();
+    	
+        return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech("Übung für folgenden Körperteil: " + part));
+    }
+    
+    
     
     private SpeechletResponse setName(Intent intent) {
     	// Get the slots from the intent.

@@ -36,6 +36,15 @@
     			"type": "AMAZON.DE_FIRST_NAME"
     		}
     	]
+    },
+    {
+    	"intent": "GetExerciseIntent",
+    	"slots":[
+    		{
+    			"name": "bodypart",
+    			"type": "LIST_OF_BODYPARTS"
+    		}
+    	]
     }
   ]
 }
