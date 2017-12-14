@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Random;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +29,15 @@ import com.amazon.speech.ui.SimpleCard;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.amazon.speech.ui.OutputSpeech;
+
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import com.amazonaws.services.dynamodbv2.document.DynamoDB;
+import com.amazonaws.services.dynamodbv2.document.Table;
+import com.amazonaws.services.dynamodbv2.model.AttributeDefinition;
+import com.amazonaws.services.dynamodbv2.model.KeySchemaElement;
+import com.amazonaws.services.dynamodbv2.model.KeyType;
+import com.amazonaws.services.dynamodbv2.model.ProvisionedThroughput;
+import com.amazonaws.services.dynamodbv2.model.ScalarAttributeType;
 
 public class SpaceGeekSpeechlet implements SpeechletV2 {
     private static final Logger log = LoggerFactory.getLogger(SpaceGeekSpeechlet.class);
@@ -180,6 +190,11 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         sessionId = requestEnvelope.getSession().getSessionId();
         goodWeather = getWeather(); 
         
+        if (dbclient == null) {
+        	dbclient = new AmazonDynamoDBClient();
+        	
+        }
+        
         
         if(formalSpeech) {
         	speechText = GREETINGS_FORMAL[(int) Math.floor(Math.random() * GREETINGS_FORMAL.length)];
@@ -192,9 +207,20 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     	Map<String, Slot> slots = intent.getSlots();
         Slot bodypart = slots.get("bodypart");
         String part = bodypart.getValue();
+        
+        // Hier die DB-Abfrage, zu Testzwecken habe ich die Übungen in ein Array gespeichert
+        String[][] exercises = {{"Kniebeuge", "Knie", "Po"},{"Kopfpendel", "nun", "Nacken"}};
+        int length = exercises.length; 
+        int rand = new Random(length).nextInt();
+        
+        String name = exercises[rand][0];
     	
+        
+        
         return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech("Übung für folgenden Körperteil: " + part));
     }
+    
+    
     
     
     
