@@ -84,14 +84,14 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     private boolean firstMeeting = true; 
     // Activity data
     private String activityType; // exercise, game, activity
-    private boolean activityRelaxed; // true, false
+    private boolean activityExertion; // true, false
     private String activityLocation; // inside, outside, both
     private boolean activityWithFriends; // true, false
     private ArrayList<String> activityExcludeBodypart = new ArrayList<>(); // Exclude activities that put strain on these body parts
     private ArrayList<String> activityIncludeBodypart = new ArrayList<>(); // Choose activities that include these body parts
     // Actity data set 
     private boolean activityTypeSet; 
-    private boolean activityRelaxedSet; 
+    private boolean activityExertionSet; 
     private boolean activityLocationSet; 
     private boolean activityWithFriendsSet; 
     private boolean activityExcludeBodypartSet; 
@@ -121,10 +121,14 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     
     
     
-    @Override
+    
+    
+    
+    
+    
+    ////////// LIFECYCLE METHODS /////////////////////////////////////////////////////////////////////////////////////////
+    
     public SpeechletResponse onLaunch(SpeechletRequestEnvelope<LaunchRequest> requestEnvelope) {
-        
-    	
         // Create the Simple card content.
         SimpleCard card = getSimpleCard("exEins", taskDescription);
         // Create the plain text output.
@@ -133,31 +137,29 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         return SpeechletResponse.newTellResponse(speech, card);
     }
 
-    @Override
     public void onSessionStarted(SpeechletRequestEnvelope<SessionStartedRequest> requestEnvelope) {
         log.info("onSessionStarted requestId={}, sessionId={}", requestEnvelope.getRequest().getRequestId(), requestEnvelope.getSession().getSessionId());
         
         initializeComponents(requestEnvelope);
     }
     
-    @Override
     public void onSessionEnded(SpeechletRequestEnvelope<SessionEndedRequest> requestEnvelope) {
         log.info("onSessionEnded requestId={}, sessionId={}", requestEnvelope.getRequest().getRequestId(),
                 requestEnvelope.getSession().getSessionId());
         // any cleanup logic goes here
     }
     
-    @Override
     public SpeechletResponse onIntent(SpeechletRequestEnvelope<IntentRequest> requestEnvelope) {
         IntentRequest request = requestEnvelope.getRequest();
-        log.info("onIntent requestId={}, sessionId={}", request.getRequestId(),
-                requestEnvelope.getSession().getSessionId());
+        log.info("onIntent requestId={}, sessionId={}", request.getRequestId(), requestEnvelope.getSession().getSessionId());
 
         Intent intent = request.getIntent();
         String intentName = (intent != null) ? intent.getName() : null;
         PlainTextOutputSpeech outputSpeech;
         
         switch(intentName) {
+        case "GetStatusIntent": 
+        	
         case "GetNewFactIntent":
         	return getNewFactResponse(intent);
         case "RepeatIntent":
@@ -181,32 +183,101 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
             outputSpeech.setText("Tschüss");
             return SpeechletResponse.newTellResponse(outputSpeech);
         default: 
-        	return getAskResponse("SpaceGeek", "Das wird nicht unterstützt.  VErsuche etwas anderes.");
+        	return getAskResponse("Gino", "Das habe ich leider nicht verstanden.");
         }
     }
     
-    private void initializeComponents(SpeechletRequestEnvelope<SessionStartedRequest> requestEnvelope) {
-    	requestId = requestEnvelope.getRequest().getRequestId();
-        sessionId = requestEnvelope.getSession().getSessionId();
-        goodWeather = getWeather(); 
-        
-        if (dbclient == null) {
-        	dbclient = new AmazonDynamoDBClient();
-        	
-        }
-        
-        
-        if(formalSpeech) {
-        	speechText = GREETINGS_FORMAL[(int) Math.floor(Math.random() * GREETINGS_FORMAL.length)];
-        } else {
-        	speechText = GREETINGS_INFORMAL[(int) Math.floor(Math.random() * GREETINGS_INFORMAL.length)];
-        }
-    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+	////////// SETUP AND USER DATA METHODS /////////////////////////////////////////////////////////////////////////////////////////
+	    
+	private SpeechletResponse firstSetup() {
+		return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech("Platzhalter"));
+	}
+	
+	private void initializeComponents(SpeechletRequestEnvelope<SessionStartedRequest> requestEnvelope) {
+	    	requestId = requestEnvelope.getRequest().getRequestId();
+	        sessionId = requestEnvelope.getSession().getSessionId();
+	        goodWeather = getWeather(); 
+	        
+	        if (dbclient == null) {
+	        	dbclient = new AmazonDynamoDBClient();
+	        	
+	        }
+	        
+	        if(formalSpeech) {
+	        	speechText = GREETINGS_FORMAL[(int) Math.floor(Math.random() * GREETINGS_FORMAL.length)];
+	        } else {
+	        	speechText = GREETINGS_INFORMAL[(int) Math.floor(Math.random() * GREETINGS_INFORMAL.length)];
+	        }
+	    }
+	
+	// Change or set name for the first time
+	private SpeechletResponse setName(Intent intent) {
+		// Get the slots from the intent.
+	 Map<String, Slot> slots = intent.getSlots();
+	 String username = slots.get("username").getValue();
+	
+	 userNameTell = username + "!";
+	 userNameAsk = username + "?";
+	 
+	 if(firstMeeting) {
+	 	return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech("Nett Dich kennen zu lernen " + userNameTell));
+	 } else {
+	 	return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech("Verstanden " + userNameTell));
+	 }
+	}
+	
+	// Let's the user choose if they want to be "geduzt" or "gesiezt"
+	private SpeechletResponse setFormalSpeech(Intent intent) {
+		// Get the slots from the intent.
+	 Map<String, Slot> slots = intent.getSlots();
+	 Slot formalSpeechStyle = slots.get("formalSpeechType");
+	 
+	 String style = formalSpeechStyle.getValue();
+	 
+	 if(style.equals("siezen")) {
+	 	formalSpeech = true; 
+	 	return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech("Verstanden, ich werde Sie ab jetzt Siezen " + userNameTell));
+	 } else {
+	 	formalSpeech = false;
+	 	return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech("Verstanden, ich werden Sie ab jetzt Duzen " + userNameTell));
+	 }
+	}
+
+
+
+
+
+
+
+
+
+
+	////////// CORE FUNCTIONS /////////////////////////////////////////////////////////////////////////////////////////
     
     private SpeechletResponse getExercise(Intent intent) {
     	Map<String, Slot> slots = intent.getSlots();
         Slot bodypart = slots.get("bodypart");
         String part = bodypart.getValue();
+        
+        Slot location = slots.get("location");
+        String loc = location.getName();
+        
+        
+        
+        if(loc.equals("drinnen")) {
+        	return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech("Drinnen erkannt"));
+        } else if (loc.equals("draußen")) {
+        	return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech("Draußen erkannt"));
+        }
         
         // Hier die DB-Abfrage, zu Testzwecken habe ich die Übungen in ein Array gespeichert
         String[][] exercises = {{"Kniebeuge", "Knie", "Po"},{"Kopfpendel", "nun", "Nacken"}};
@@ -219,44 +290,17 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         
         return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech("Übung für folgenden Körperteil: " + part));
     }
+
     
     
     
     
     
-    private SpeechletResponse setName(Intent intent) {
-    	// Get the slots from the intent.
-        Map<String, Slot> slots = intent.getSlots();
-        Slot username = slots.get("username");
-        String name = username.getValue();
-        
-        userNameTell = name + "!";
-        userNameAsk = name + "?";
-        
-        if(firstMeeting) {
-        	return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech("Nett Dich kennen zu lernen " + userNameTell));
-        } else {
-        	return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech("Verstanden " + userNameTell));
-        }
-    }
     
-    // Let's the user choose if they want to be "geduzt" or "gesiezt"
-    private SpeechletResponse setFormalSpeech(Intent intent) {
-    	// Get the slots from the intent.
-        Map<String, Slot> slots = intent.getSlots();
-        Slot formalSpeechStyle = slots.get("formalSpeechType");
-        
-        String style = formalSpeechStyle.getValue();
-        
-        if(style.equals("siezen")) {
-        	formalSpeech = true; 
-        	return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech("Verstanden, ich werde Sie ab jetzt Siezen " + userNameTell));
-        } else {
-        	formalSpeech = false;
-        	return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech("Verstanden, ich werden Sie ab jetzt Duzen " + userNameTell));
-        }
-    }
     
+    
+
+    ////////// ADDITIONAL FUNCTIONS /////////////////////////////////////////////////////////////////////////////////////////
     
     // Fetch weather data and get weather description and if weather is good enough for going out
     private boolean getWeather(){
@@ -333,7 +377,16 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     }
     
     
-     
+    
+    
+    
+    
+    
+    
+    
+    
+    ////////// TEST FUNCTIONS /////////////////////////////////////////////////////////////////////////////////////////
+    
     // Repeats a number and a metric
     private SpeechletResponse repeat(final Intent intent) {
     	// Get the slots from the intent.
@@ -415,6 +468,8 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     
     
     
+    //////////BUILT_IN FUNCTIONS /////////////////////////////////////////////////////////////////////////////////////////
+    
     // Returns response for the help intent.
     private SpeechletResponse getHelpResponse() {
         String speechText =
@@ -434,7 +489,17 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
 
         return card;
     }
-
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    ////////// HELPER FUNCTIONS /////////////////////////////////////////////////////////////////////////////////////////
     /**
      * Helper method for retrieving an OutputSpeech object when given a string of TTS.
      * @param speechText the text that should be spoken out to the user.

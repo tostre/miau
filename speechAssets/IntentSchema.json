@@ -1,50 +1,77 @@
 {
   "intents": [
-    {
-      "intent": "GetNewFactIntent",
-      "slots": [
-      	{
-      		"name": "topic",
-      		"type": "LIST_OF_TOPICS"
-      	}
-      ]
-      
-    },
-    {
-      "intent": "AMAZON.HelpIntent"
-    },
-    {
-      "intent": "AMAZON.StopIntent"
-    },
-    {
-      "intent": "AMAZON.CancelIntent"
-    },
-    { 
-    	"intent": "SetFormalSpeechIntent",
-    	"slots": [
-	    	{
-	    		"name": "formalSpeechType",
-	    		"type": "LIST_OF_FORMAL_SPEECH_TYPES"
-	    	}
-    	]
-    },
-    {
+  	{
     	"intent": "SetNameIntent",
-    	"slots":[
-    		{
-    			"name": "username",
-    			"type": "AMAZON.DE_FIRST_NAME"
-    		}
-    	]
-    },
+    	"slots":[{
+			"name": "username",
+			"type": "AMAZON.DE_FIRST_NAME"}]},
+  	{ 
+    	"intent": "SetFormalSpeechIntent",
+    	"slots": [{
+    		"name": "formalSpeechType",
+    		"type": "LIST_OF_FORMAL_SPEECH_TYPES"}]},
+	    	
+	    	
+	
+  	{
+    	"intent": "GetGameIntent",
+    	"slots":[{
+			"name": "location",
+			"type": "LIST_OF_LOCATIONS"},
+			{
+			"name": "exertion",
+			"type": "LIST_OF_EXERTIONS"}]},
     {
     	"intent": "GetExerciseIntent",
-    	"slots":[
+    	"slots":[{
+    		"name": "location",
+    		"type": "LIST_OF_LOCATIONS"},
+    	{
+			"name": "bodypart",
+			"type": "LIST_OF_BODYPARTS"}]},
+	{
+    	"intent": "GetActivityIntent",
+    	"slots":[{
+			"name": "location",
+			"type": "LIST_OF_LOCATIONS"},
+			{
+			"name": "exertion",
+			"type": "LIST_OF_EXERTIONS"}]},
+	{
+    	"intent": "GetStatusIntent",
+    	"slots":[{
+    		"name": "activityType",
+    		"type:": "LIST_OF_ACTIVITY_TYPES"},
     		{
-    			"name": "bodypart",
-    			"type": "LIST_OF_BODYPARTS"
-    		}
-    	]
-    }
+			"name": "location",
+			"type": "LIST_OF_LOCATIONS"},
+			{
+			"name": "exertion",
+			"type": "LIST_OF_EXERTIONS"},
+			{
+			"name": "excludedBodyParts",
+			"type": "LIST_OF_BODY_PARTS"},
+			{
+			"name": "includeBodyParts",
+			"type": "LIST_OF_BODY_PARTS"}]},
+    	
+    
+    
+    { 
+    	"intent": "GetWeatherIntent"},
+    {
+      	"intent": "AMAZON.HelpIntent"},
+    {
+      	"intent": "AMAZON.StopIntent"},
+    {
+      	"intent": "AMAZON.CancelIntent"},
+      	
+      	
+      	
+	{
+      "intent": "GetNewFactIntent",
+      "slots": [{
+  		"name": "topic",
+  		"type": "LIST_OF_TOPICS"}]}
   ]
 }

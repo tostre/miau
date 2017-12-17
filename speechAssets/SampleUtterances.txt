@@ -1,33 +1,3 @@
-GetNewFactIntent einen Fakt
-GetNewFactIntent einen Weltraumfakt
-GetNewFactIntent erzähl mir einen Fakt
-GetNewFactIntent erzähl mir einen Weltraumfakt
-GetNewFactIntent gib mir einen Fakt
-GetNewFactIntent gib mir einen Weltraumfakt
-GetNewFactIntent erzähl mir etwas
-
-GetNewFactIntent einen Fakt über {topic}
-GetNewFactIntent erzähl mir einen Fakt über {topic}
-GetNewFactIntent gib mir einen Fakt über {topic}
-GetNewFactIntent erzähl mir etwas über {topic}
-
-
-
-
-
-
-
-
-
-
-SetFormalSpeechIntent Ich möchte dass Du mich {formalSpeechType} 
-SetFormalSpeechIntent Ich möchte dass Sie mich {formalSpeechType} 
-SetFormalSpeechIntent {formalSpeechType} mich bitte 
-SetFormalSpeechIntent {formalSpeechType} Sie mich bitte 
-SetFormalSpeechIntent Ich möchte {formalSpeechType} werden
-SetFormalSpeechIntent Ich würde gerne {formalSpeechType} werden
-SetFormalSpeechIntent {formalSpeechType} bitte 
-
 SetNameIntent Ich möchte meinen Namen in {username} ändern
 SetNameIntent Ich möchte dass Du mich {username} nennst
 SetNameIntent Ich möchte dass Sie mich {username} nennen
@@ -36,14 +6,223 @@ SetNameIntent Ändern Sie meinen Namen in {username}
 SetNameIntent Bitte nenne mich ab jetzt {username} 
 SetNameIntent Bitte nennen Sie mich ab jetzt {username}
 SetNameIntent Ich heiße {username}
+SetNameIntent Hallo ich heiße {username}
+SetNameIntent Mein Name  ist {username}
+SetNameIntent Hallo mein Name ist {username}
 
-GetExerciseIntent Gib mir eine Übung für den {bodypart}
-GetExerciseIntent Gib mir eine Übung für die {bodypart}
-GetExerciseIntent Geben Sie mir eine Übung für den {bodypart}
-GetExerciseIntent Geben Sie mir eine Übung für die {bodypart}
-GetExerciseIntent Ich möchte eine Übung für den {bodypart}
-GetExerciseIntent Ich möchte eine Übung für die {bodypart}
-GetExerciseIntent Ich will eine Übung für den {bodypart}
-GetExerciseIntent Ich will eine Übung für die {bodypart}
-GetExerciseIntent Eine Übung für den {bodypart} bitte
-GetExerciseIntent Eine Übung für die {bodypart} bitte
+SetFormalSpeechIntent Ich möchte dass Du mich {formalSpeechType} 
+SetFormalSpeechIntent Ich möchte dass Sie mich {formalSpeechType} 
+SetFormalSpeechIntent {formalSpeechType} mich bitte 
+SetFormalSpeechIntent {formalSpeechType} Sie mich bitte 
+SetFormalSpeechIntent Ich möchte {formalSpeechType} werden
+SetFormalSpeechIntent Ich würde gerne {formalSpeechType} werden
+SetFormalSpeechIntent {formalSpeechType} bitte 
+SetFormalSpeechIntent Ich möchte dass Du mich mit {formalSpeechType} anredest
+SetFormalSpeechIntent Ich möchte dass Du mich mit {formalSpeechType} ansprichst
+SetFormalSpeechIntent Ich möchte dass Sie mich mit {formalSpeechType} anreden
+SetFormalSpeechIntent Ich möchte dass Sie mich mit {formalSpeechType} ansprechen
+
+
+
+
+
+
+
+
+GetGameIntent Ich möchte etwas spielen
+GetGameIntent Ich möchte {location} etwas spielen
+GetGameIntent Ich möchte etwas {exertion} spielen
+GetGameIntent Ich möchte {location} etwas {exertion} spielen
+GetGameIntent Schlag mir ein Spiel vor
+GetGameIntent Schlag mir ein Spiel für {location} vor
+GetGameIntent Schlag mir für {location} ein Spiel vor 
+GetGameIntent Schlag mir ein {exertion} Spiel vor
+GetGameIntent Schlag mir ein {exertion} für {location} Spiel vor
+GetGameIntent Schlag mir für {location} ein {exertion} Spiel vor
+GetGameIntent Schlagen Sie mir ein Spiel vor
+GetGameIntent Schlagen Sie mir ein Spiel für {location} vor
+GetGameIntent Schlagen Sie mir für {location} ein Spiel vor 
+GetGameIntent Schlagen Sie mir ein {exertion} Spiel vor
+GetGameIntent Schlagen Sie mir ein {exertion} für {location} Spiel vor
+GetGameIntent Schlagen Sie mir für {location} ein {exertion} Spiel vor
+GetGameIntent Gib mir ein Spiel für {location} 
+GetGameIntent Gib mir ein Spiel
+GetGameIntent Gib mir für {location} ein Spiel 
+GetGameIntent Gib mir ein {exertion} Spiel 
+GetGameIntent Gib mir ein {exertion} für {location} Spiel 
+GetGameIntent Gib mir für {location} ein {exertion} Spiel 
+GetGameIntent Gib mir ein Spiel für {location} 
+GetGameIntent Geben Sie mir ein Spiel
+GetGameIntent Geben Sie mir für {location} ein Spiel 
+GetGameIntent Geben Sie mir ein {exertion} Spiel 
+GetGameIntent Geben Sie mir ein {exertion} für {location} Spiel 
+GetGameIntent Geben Sie mir für {location} ein {exertion} Spiel 
+
+GetExerciseIntent Ich möchte trainieren
+GetExerciseIntent Ich möchte etwas trainieren
+GetExerciseIntent Ich möchte {location} trainieren
+GetExerciseIntent Ich möchte mein {bodypart} trainieren
+GetExerciseIntent Ich möchte meine {bodypart} trainieren
+GetExerciseIntent Ich möchte {location} mein {bodypart} trainieren
+GetExerciseIntent Ich möchte {location} meine {bodypart} trainieren
+GetExerciseIntent Schlag mir eine Übung
+GetExerciseIntent Schlag mir eine Übung für {location} vor
+GetExerciseIntent Schlag mir für {location} eine Übung vor
+GetExerciseIntent Schlag mir eine {bodypart} Übung vor
+GetExerciseIntent Schlag mir eine {bodypart} Übung für {location} vor
+GetExerciseIntent Schlag mir für {location} eine {bodypart} Übung vor
+GetExerciseIntent Schlagen Sie mir eine Übung vor
+GetExerciseIntent Schlagen Sie mir eine Übung für {location} vor
+GetExerciseIntent Schlagen Sie mir für {location} eine Übung vor 
+GetExerciseIntent Schlagen Sie mir eine {bodypart} Übung vor
+GetExerciseIntent Schlagen Sie mir eine {bodypart} für {location} vor
+GetExerciseIntent Schlagen Sie mir für {location} eine {bodypart} Übung vor
+GetExerciseIntent Gib mir eine Übung für {location} 
+GetExerciseIntent Gib mir eine Übung 
+GetExerciseIntent Gib mir für {location} eine Übung
+GetExerciseIntent Gib mir eine {bodypart} Übung
+GetExerciseIntent Gib mir eine {bodypart} Übung für {location} 
+GetExerciseIntent Gib mir für {location} eine {bodypart} Übung
+GetExerciseIntent Geben Sie mir eine Übung
+GetExerciseIntent Geben Sie mir für {location} eine Übung
+GetExerciseIntent Geben Sie mir eine {bodypart} Übung
+GetExerciseIntent Geben Sie mir eine {bodypart} Übung für {location} 
+GetExerciseIntent Geben Sie mir für {location} eine {bodypart} Übung
+
+GetGameIntent Ich möchte etwas spielen
+GetGameIntent Ich möchte {location} etwas spielen
+GetGameIntent Ich möchte etwas {exertion} spielen
+GetGameIntent Ich möchte {location} etwas {exertion} spielen
+GetGameIntent Schlag mir ein Spiel vor
+GetGameIntent Schlag mir ein Spiel für {location} vor
+GetGameIntent Schlag mir für {location} ein Spiel vor 
+GetGameIntent Schlag mir ein {exertion} Spiel vor
+GetGameIntent Schlag mir ein {exertion} für {location} Spiel vor
+GetGameIntent Schlag mir für {location} ein {exertion} Spiel vor
+GetGameIntent Schlagen Sie mir ein Spiel vor
+GetGameIntent Schlagen Sie mir ein Spiel für {location} vor
+GetGameIntent Schlagen Sie mir für {location} ein Spiel vor 
+GetGameIntent Schlagen Sie mir ein {exertion} Spiel vor
+GetGameIntent Schlagen Sie mir ein {exertion} für {location} Spiel vor
+GetGameIntent Schlagen Sie mir für {location} ein {exertion} Spiel vor
+GetGameIntent Gib mir ein Spiel für {location} 
+GetGameIntent Gib mir ein Spiel
+GetGameIntent Gib mir für {location} ein Spiel 
+GetGameIntent Gib mir ein {exertion} Spiel 
+GetGameIntent Gib mir ein {exertion} für {location} Spiel 
+GetGameIntent Gib mir für {location} ein {exertion} Spiel 
+GetGameIntent Gib mir ein Spiel für {location} 
+GetGameIntent Geben Sie mir ein Spiel
+GetGameIntent Geben Sie mir für {location} ein Spiel 
+GetGameIntent Geben Sie mir ein {exertion} Spiel 
+GetGameIntent Geben Sie mir ein {exertion} für {location} Spiel 
+GetGameIntent Geben Sie mir für {location} ein {exertion} Spiel 
+
+GetActivityIntent Ich möchte etwas tun
+GetActivityIntent Ich möchte etwas machen
+GetActivityIntent Ich möchte {location} etwas tun
+GetActivityIntent Ich möchte {location} etwas machen
+GetActivityIntent Ich möchte etwas {location} tun
+GetActivityIntent Ich möchte etwas {location} machen
+GetActivityIntent Schlag mir eine Aktivität vor
+GetActivityIntent Schlag mir eine Beschäftigung vor
+GetActivityIntent Schlag mir eine Tätigkeit vor
+GetActivityIntent Schlag mir eine Aktivität für {location} vor
+GetActivityIntent Schlag mir eine Beschäftigung für {location} vor
+GetActivityIntent Schlag mir eine Tätigkeit für {location} vor
+GetActivityIntent Schlag mir für {location} eine Aktivität vor
+GetActivityIntent Schlag mir für {location} eine Beschäftigung für {location} vor
+GetActivityIntent Schlag mir für {location} eine Tätigkeit für {location} vor
+GetActivityIntent Schlag mir eine {exertion} Aktivität vor
+GetActivityIntent Schlag mir eine {exertion} Beschäftigung vor
+GetActivityIntent Schlag mir eine {exertion} Tätigkeit vor
+GetActivityIntent Schlag mir eine {exertion} Aktivität für {location} vor
+GetActivityIntent Schlag mir eine {exertion} Beschäftigung für {location} vor
+GetActivityIntent Schlag mir eine {exertion} Tätigkeit für {location} vor
+GetActivityIntent Schlag mir für {location} eine {exertion} Aktivität vor
+GetActivityIntent Schlag mir für {location} eine {exertion} Beschäftigung vor
+GetActivityIntent Schlag mir für {location} eine {exertion} Tätigkeit vor
+GetActivityIntent Schlagen Sie mir eine Aktivität vor
+GetActivityIntent Schlagen Sie mir eine Beschäftigung vor
+GetActivityIntent Schlagen Sie mir eine Tätigkeit vor
+GetActivityIntent Schlagen Sie mir eine Aktivität für {location} vor
+GetActivityIntent Schlagen Sie mir eine Beschäftigung für {location} vor
+GetActivityIntent Schlagen Sie mir eine Tätigkeit für {location} vor
+GetActivityIntent Schlagen Sie mir für {location} eine Aktivität vor 
+GetActivityIntent Schlagen Sie mir für {location} eine Beschäftigung vor 
+GetActivityIntent Schlagen Sie mir für {location} eine Tätigkeit vor 
+GetActivityIntent Schlagen Sie mir eine {exertion} Aktivität vor
+GetActivityIntent Schlagen Sie mir eine {exertion} Beschäftigung vor
+GetActivityIntent Schlagen Sie mir eine {exertion} Tätigkeit vor
+GetActivityIntent Schlagen Sie mir eine {exertion} Aktivität für {location} vor
+GetActivityIntent Schlagen Sie mir eine {exertion} Beschäftigung für {location} vor
+GetActivityIntent Schlagen Sie mir eine {exertion} Tätigkeit für {location} vor
+GetActivityIntent Schlagen Sie mir für {location} eine {exertion} Aktivität vor
+GetActivityIntent Schlagen Sie mir für {location} eine {exertion} Beschäftigung vor
+GetActivityIntent Schlagen Sie mir für {location} eine {exertion} Tätigkeit vor
+GetActivityIntent Gib mir eine Aktivität für {location} 
+GetActivityIntent Gib mir eine Beschäftigung für {location} 
+GetActivityIntent Gib mir eine Tätigkeit für {location} 
+GetActivityIntent Gib mir eine Aktivität 
+GetActivityIntent Gib mir eine Beschäftigung 
+GetActivityIntent Gib mir eine Tätigkeit 
+GetActivityIntent Gib mir für {location} eine Aktivität
+GetActivityIntent Gib mir für {location} eine Beschäftigung
+GetActivityIntent Gib mir für {location} eine Tätigkeit
+GetActivityIntent Gib mir eine {exertion} Aktivität
+GetActivityIntent Gib mir eine {exertion} Beschäftigung
+GetActivityIntent Gib mir eine {exertion} Tätigkeit
+GetActivityIntent Gib mir eine {exertion} Aktivität für {location} 
+GetActivityIntent Gib mir eine {exertion} Beschäftigung für {location} 
+GetActivityIntent Gib mir eine {exertion} Tätigkeit für {location} 
+GetActivityIntent Gib mir für {location} eine {exertion} Aktivität
+GetActivityIntent Gib mir für {location} eine {exertion} Beschäftigung
+GetActivityIntent Gib mir für {location} eine {exertion} Tätigkeit
+GetActivityIntent Geben Sie mir eine Aktivität
+GetActivityIntent Geben Sie mir eine Beschäftigung
+GetActivityIntent Geben Sie mir eine Tätigkeit
+GetActivityIntent Geben Sie mir für {location} eine Aktivität
+GetActivityIntent Geben Sie mir für {location} eine Beschäftigung
+GetActivityIntent Geben Sie mir für {location} eine Tätigkeit
+GetActivityIntent Geben Sie mir eine {exertion} Aktivität
+GetActivityIntent Geben Sie mir eine {exertion} Beschäftigung
+GetActivityIntent Geben Sie mir eine {exertion} Tätigkeit
+GetActivityIntent Geben Sie mir eine {exertion} Aktivität für {location} 
+GetActivityIntent Geben Sie mir eine {exertion} Beschäftigung für {location} 
+GetActivityIntent Geben Sie mir eine {exertion} Tätigkeit für {location} 
+GetActivityIntent Geben Sie mir für {location} eine {exertion} Aktivität
+GetActivityIntent Geben Sie mir für {location} eine {exertion} Beschäftigung
+GetActivityIntent Geben Sie mir für {location} eine {exertion} Tätigkeit
+
+GetStatusIntent Welche Angaben fehlen Dir noch?
+GetStatusIntent Welche Angaben fehlen Ihnen noch?
+GetStatusIntent Welche Angaben fehlen noch?
+GetStatusIntent Welche Angaben brauchst Du noch?
+GetStatusIntent Welche Angaben brauchen Sie noch?
+GetStatusIntent Was habe ich bisher angegeben?
+GetStatusIntent Was habe ich schon angegeben?
+GetStatusIntent Was ist der Status?
+GetStatusIntent Was fehlt noch?
+GetStatusIntent Lies mir vor was Du hast?
+GetStatusIntent Lesen Sie mir vor was Sie haben?
+GetStatusIntent Was ist der Status?
+
+
+
+
+
+
+
+
+
+GetNewFactIntent einen Fakt
+GetNewFactIntent einen Weltraumfakt
+GetNewFactIntent erzähl mir einen Fakt
+GetNewFactIntent erzähl mir einen Weltraumfakt
+GetNewFactIntent gib mir einen Fakt
+GetNewFactIntent gib mir einen Weltraumfakt
+GetNewFactIntent erzähl mir etwas
+GetNewFactIntent einen Fakt über {topic}
+GetNewFactIntent erzähl mir einen Fakt über {topic}
+GetNewFactIntent gib mir einen Fakt über {topic}
+GetNewFactIntent erzähl mir etwas über {topic}
