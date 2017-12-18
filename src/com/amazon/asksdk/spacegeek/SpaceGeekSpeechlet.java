@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Random;
 
@@ -117,6 +118,54 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
             "Autos haben vier Räder."
     };
     
+    // Slots mit Synonymen (weil man ohne den SkillBuilder keine Synonyme nutzen kann
+    private static final String[] EXERTIONS_RELAXED = new String[] {
+    		"entspannt", 
+    		"entspannte", 
+    		"ruhig", 
+    		"ruhige"
+    };
+    private static final String[] EXERTIONS_EXHAUSTING = new String[] {
+    		"anstrengend",
+    		"anstrengende", 
+    		"erschöpfend", 
+    		"erschöpfende", 
+    		"aktiv", 
+    		"aktive"
+    };
+    private static final String[] LOCATIONS_INSIDE = new String[] {
+    		"drinnen",
+    		"im haus",
+    		"in der wohnung",
+    		"hier",
+    		"im innnern",
+    		"im inneren"
+    };
+    private static final String[] LOCATIONS_OUTSIDE = new String[] {
+    		"draußen",
+    		"außer Haus",
+    		"unter freiem Himmel",
+    		"im Freien",
+    		"in der Sonne"
+    };
+    private static final String[] SPEECH_FORMAL = new String[] {
+    		"Sie",
+    		"Siezen",
+    		"Ihr",
+    		"Ihre",
+    		"Ihres",
+    		"Ihrs",
+    		"Ihnen"
+    };
+    private static final String[] SPEECH_INFORMAL = new String[] {
+    		"Du",
+    		"Duzen",
+    		"Dein",
+    		"Deine",
+    		"Deins",
+    		"Dich"
+    };
+    
     
     
     
@@ -129,7 +178,13 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     ////////// LIFECYCLE METHODS /////////////////////////////////////////////////////////////////////////////////////////
     
     public SpeechletResponse onLaunch(SpeechletRequestEnvelope<LaunchRequest> requestEnvelope) {
-        // Create the Simple card content.
+        if(formalSpeech) {
+        	speechText = GREETINGS_FORMAL[(int) Math.floor(Math.random() * GREETINGS_FORMAL.length)];
+        } else {
+        	speechText = GREETINGS_INFORMAL[(int) Math.floor(Math.random() * GREETINGS_INFORMAL.length)];
+        }
+    	
+    	// Create the Simple card content.
         SimpleCard card = getSimpleCard("exEins", taskDescription);
         // Create the plain text output.
         PlainTextOutputSpeech speech = getPlainTextOutputSpeech(speechText);
@@ -172,6 +227,8 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         	return setName(intent);
         case "GetExerciseIntent":
         	return getExercise(intent);
+        case "GetGameIntent":
+        	return getGame(intent);
     	case "AMAZON.HelpIntent":
     		return getHelpResponse();
     	case "AMAZON.StopIntent":
@@ -207,15 +264,10 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
 	        sessionId = requestEnvelope.getSession().getSessionId();
 	        goodWeather = getWeather(); 
 	        
+	        
 	        if (dbclient == null) {
 	        	dbclient = new AmazonDynamoDBClient();
 	        	
-	        }
-	        
-	        if(formalSpeech) {
-	        	speechText = GREETINGS_FORMAL[(int) Math.floor(Math.random() * GREETINGS_FORMAL.length)];
-	        } else {
-	        	speechText = GREETINGS_INFORMAL[(int) Math.floor(Math.random() * GREETINGS_INFORMAL.length)];
 	        }
 	    }
 	
@@ -291,7 +343,54 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech("Übung für folgenden Körperteil: " + part));
     }
 
-    
+    private SpeechletResponse getGame(Intent intent) {
+    	Map<String, Slot> slots = intent.getSlots();       
+        String exertion = slots.get("exertion").getValue();
+        String location = slots.get("location").getValue();
+        
+        String name = slots.get("location").getName();
+        String val = slots.get("location").getValue();
+        location = intent.getSlot("location").getValue();
+        location.replace("\n", " ");
+        
+        boolean erkannt = Arrays.asList(LOCATIONS_INSIDE).contains(location);
+        
+        
+        if(Arrays.asList(LOCATIONS_INSIDE).contains(location)) {
+        	activityLocation = "inside";
+        	activityLocationSet = true;
+        	return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech("Drinnen erkannt: " + location));
+        } else if (Arrays.asList(LOCATIONS_OUTSIDE).contains(location)) {
+        	activityLocation = "inside";
+        	activityLocationSet = true;
+        	return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech("Draußen erkannt: " + location));
+        }
+        
+        
+        if(erkannt) {
+        	 //return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech("Keinen Ort erkannt: " + location));
+        	return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech("LOKATION: " + location.toLowerCase() + ", Erkannt"));
+        } else {
+        	 //return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech("Keinen Ort erkannt: " + location));
+        	return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech("LOKATION: " + location.toLowerCase() + ", Nicht Erkannt"));
+        }
+        
+       
+        
+        
+        
+       /* 
+        Hier die DB-Abfrage, zu Testzwecken habe ich die Übungen in ein Array gespeichert
+        String[][] exercises = {{"Kniebeuge", "Knie", "Po"},{"Kopfpendel", "nun", "Nacken"}};
+        int length = exercises.length; 
+        int rand = new Random(length).nextInt();
+        
+        String name = exercises[rand][0];
+    	
+        
+        
+        //return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech("Übung für folgenden Körperteil: " + part));*/
+    }
     
     
     
