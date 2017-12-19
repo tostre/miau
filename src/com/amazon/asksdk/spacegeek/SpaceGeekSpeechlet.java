@@ -19,6 +19,7 @@ import com.amazon.speech.slu.Intent;
 import com.amazon.speech.slu.Slot;
 import com.amazon.speech.speechlet.IntentRequest;
 import com.amazon.speech.speechlet.LaunchRequest;
+import com.amazon.speech.speechlet.Session;
 import com.amazon.speech.speechlet.SessionEndedRequest;
 import com.amazon.speech.speechlet.SessionStartedRequest;
 import com.amazon.speech.speechlet.SpeechletV2;
@@ -107,9 +108,9 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     private String fetchWeatherUrl = "http://api.openweathermap.org/data/2.5/weather?id=2935517&APPID=44956c0ccd5905a239c4ee266863eb06";
     private String weatherDescription;
     private boolean goodWeather;
-    // database data
+    // database and storage data
     private AmazonDynamoDBClient dbclient;
- 
+    private Session session; 
     
     // Array mit Fakten
     private static final String[] SPACE_FACTS = new String[] {
@@ -126,15 +127,18 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     // Slots mit Synonymen (weil man ohne den SkillBuilder keine Synonyme nutzen kann
     private static final String[] EXERTIONS_RELAXED = new String[] {
     		"entspannt", 
-    		"entspannte", 
+    		"entspannte",
+    		"entspanntes",
     		"ruhig", 
     		"ruhige"
     };
     private static final String[] EXERTIONS_EXHAUSTING = new String[] {
     		"anstrengend",
-    		"anstrengende", 
+    		"anstrengende",
+    		"anstrengendes",
     		"erschöpfend", 
-    		"erschöpfende", 
+    		"erschöpfende",
+    		"erschöpfendes",
     		"aktiv", 
     		"aktive"
     };
@@ -183,7 +187,9 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     ////////// LIFECYCLE METHODS /////////////////////////////////////////////////////////////////////////////////////////
     
     public SpeechletResponse onLaunch(SpeechletRequestEnvelope<LaunchRequest> requestEnvelope) {
-        if(formalSpeech) {
+        session = requestEnvelope.getSession();
+    	
+    	if(formalSpeech) {
         	speechText = GREETINGS_FORMAL[(int) Math.floor(Math.random() * GREETINGS_FORMAL.length)];
         } else {
         	speechText = GREETINGS_INFORMAL[(int) Math.floor(Math.random() * GREETINGS_INFORMAL.length)];
@@ -319,97 +325,112 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
 
 	////////// CORE FUNCTIONS /////////////////////////////////////////////////////////////////////////////////////////
     
-    private SpeechletResponse getExercise(Intent intent) {
-    	Map<String, Slot> slots = intent.getSlots();
-        Slot bodypart = slots.get("bodypart");
-        String part = bodypart.getValue();
-        
-        Slot location = slots.get("location");
-        String loc = location.getName();
-        
-        
-        
-        if(loc.equals("drinnen")) {
-        	return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech("Drinnen erkannt"));
-        } else if (loc.equals("draußen")) {
-        	return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech("Draußen erkannt"));
-        }
-        
-        // Hier die DB-Abfrage, zu Testzwecken habe ich die Übungen in ein Array gespeichert
-        String[][] exercises = {{"Kniebeuge", "Knie", "Po"},{"Kopfpendel", "nun", "Nacken"}};
-        int length = exercises.length; 
-        int rand = new Random(length).nextInt();
-        
-        String name = exercises[rand][0];
+	// Returns a game for the user 
+    private SpeechletResponse getGame(Intent intent) {// Check if activity location was provided
+    	     
+    	activityType = "game";
+    	activityTypeSet = true; 
+    	session.setAttribute("activityType", "game");
+    	session.setAttribute("activityTypeSet", true);
     	
+    	// Check if location was set 
+    	if(session.getAttribute("activityLocation") != null) {
+    		
+    	}
+    	
+        Slot locationSlot = intent.getSlot("location");
+        Slot exertionSlot = intent.getSlot("exertion");
         
         
-        return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech("Übung für folgenden Körperteil: " + part));
-    }
-
-    private SpeechletResponse getGame(Intent intent) {
-    	       
-    	// Check if activity location was provided
-        String location = intent.getSlot("location").getValue().toLowerCase();
+     // Check if activity location was provided
+        if(locationSlot != null && locationSlot.getValue() != null && !locationSlot.getValue().equalsIgnoreCase("")){
+        	String location = locationSlot.getValue().toLowerCase();
         
-        if(Arrays.asList(LOCATIONS_INSIDE).contains(location)) {
-        	activityLocationSet = true;
-        	activityLocation = "inside";
-        	log.info("location: " + location);
-        } else if (Arrays.asList(LOCATIONS_OUTSIDE).contains(location)) {
-        	activityLocationSet = true;
-        	activityLocation = "outside";   
-        	log.info("location: " + location);
+	        if(Arrays.asList(LOCATIONS_INSIDE).contains(location)) {
+	        	activityLocationSet = true;
+	        	activityLocation = "inside";
+	        	log.info("location: " + location);
+	        } else if (Arrays.asList(LOCATIONS_OUTSIDE).contains(location)) {
+	        	activityLocationSet = true;
+	        	activityLocation = "outside";   
+	        	log.info("location: " + location);
+	        } else {
+	        	activityLocationSet = false;
+	        	log.info("Dieser Ort ist nicht im Array");
+	        }
         } else {
+        	// Kein Ort angegeben, nachfragen
         	activityLocationSet = false;
-        	log.info("No location found");
+        	log.info("Es wurde kein Ort angegeben");
         }
+        
         
         // Check if activity exertion was provided
-        String exertion = intent.getSlot("exertion").getValue().toLowerCase();
-        
-        if(Arrays.asList(EXERTIONS_RELAXED).contains(exertion)) {
-        	activityExertionSet = true;
-        	activityExertion = "relaxed";
-        	log.info("exertion: " + exertion);
-        } else if (Arrays.asList(EXERTIONS_EXHAUSTING).contains(exertion)) {
-        	activityExertionSet = true;
-        	activityExertion = "exhausting"; 
-        	log.info("exertion: " + exertion);
+        if(exertionSlot != null && exertionSlot.getValue() != null && !exertionSlot.getValue().equalsIgnoreCase("")){
+        	String exertion = exertionSlot.getValue().toLowerCase();
+            
+            if(Arrays.asList(EXERTIONS_RELAXED).contains(exertion)) {
+            	activityExertionSet = true;
+            	activityExertion = "relaxed";
+            	log.info("exertion: " + exertion);
+            } else if (Arrays.asList(EXERTIONS_EXHAUSTING).contains(exertion)) {
+            	activityExertionSet = true;
+            	activityExertion = "exhausting"; 
+            	log.info("exertion: " + exertion);
+            } else {
+            	activityExertionSet = false;
+            	log.info("Diese Exertion ist nicht im Array");
+            }
         } else {
+        	// Kein Exertion angegeben, nachfragen
         	activityExertionSet = false;
-        	log.info("No exertion found");
+        	log.info("Es wurde keine Exertion angegeben");
         }
         
+    
         // Gather additional info
-        if(!activityLocationSet) {
-        	// get additional data
+        if(!activityLocationSet) {return SpeechletResponse.newAskResponse(getPlainTextOutputSpeech("Nachricht"), getReprompt(getPlainTextOutputSpeech("Wiederholung")));
         }
         if (!activityExertionSet) {
         	// get additional data
         }
         
+        
         // Get game from DB according to set parameters
         String game = "Schach spielen";
         
         // Generate output
-        int random = new Random(proposals.length).nextInt();
+        int random = new Random().nextInt(proposals.length + 1);
         String proposal = proposals[random] + game;
         
-        
-        return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech(proposal));
        
-        
-       /* 
-        Hier die DB-Abfrage, zu Testzwecken habe ich die Übungen in ein Array gespeichert
-        String[][] exercises = {{"Kniebeuge", "Knie", "Po"},{"Kopfpendel", "nun", "Nacken"}};
-        int length = exercises.length; 
-        int rand = new Random(length).nextInt();
-        
-        String name = exercises[rand][0];*/
-    	
-        
-        
+        return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech(proposal));
+    }
+    
+    // Returns an exercise for the user 
+    private SpeechletResponse getExercise(Intent intent) {
+    	return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech("Platzhalter"));
+    }
+    
+    // Returns an (non-game, non-exercise) activity for the user 
+    private SpeechletResponse getActivity(Intent intent) {
+    	return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech("Platzhalter"));
+    }
+    
+    private SpeechletResponse getActivityType() {
+    	return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech("Platzhalter"));
+    }
+    
+    private SpeechletResponse setLocation() {
+    	return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech("Platzhalter"));
+    }
+    
+    private SpeechletResponse setExertion() {
+    	return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech("Platzhalter"));
+    }
+    
+    private SpeechletResponse setBodyPart() {
+    	return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech("Platzhalter"));
     }
     
     

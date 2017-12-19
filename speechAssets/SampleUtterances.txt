@@ -89,35 +89,6 @@ GetExerciseIntent Geben Sie mir eine {bodypart} Übung
 GetExerciseIntent Geben Sie mir eine {bodypart} Übung für {location} 
 GetExerciseIntent Geben Sie mir für {location} eine {bodypart} Übung
 
-GetGameIntent Ich möchte etwas spielen
-GetGameIntent Ich möchte {location} etwas spielen
-GetGameIntent Ich möchte etwas {exertion} spielen
-GetGameIntent Ich möchte {location} etwas {exertion} spielen
-GetGameIntent Schlag mir ein Spiel vor
-GetGameIntent Schlag mir ein Spiel für {location} vor
-GetGameIntent Schlag mir für {location} ein Spiel vor 
-GetGameIntent Schlag mir ein {exertion} Spiel vor
-GetGameIntent Schlag mir ein {exertion} für {location} Spiel vor
-GetGameIntent Schlag mir für {location} ein {exertion} Spiel vor
-GetGameIntent Schlagen Sie mir ein Spiel vor
-GetGameIntent Schlagen Sie mir ein Spiel für {location} vor
-GetGameIntent Schlagen Sie mir für {location} ein Spiel vor 
-GetGameIntent Schlagen Sie mir ein {exertion} Spiel vor
-GetGameIntent Schlagen Sie mir ein {exertion} für {location} Spiel vor
-GetGameIntent Schlagen Sie mir für {location} ein {exertion} Spiel vor
-GetGameIntent Gib mir ein Spiel für {location} 
-GetGameIntent Gib mir ein Spiel
-GetGameIntent Gib mir für {location} ein Spiel 
-GetGameIntent Gib mir ein {exertion} Spiel 
-GetGameIntent Gib mir ein {exertion} für {location} Spiel 
-GetGameIntent Gib mir für {location} ein {exertion} Spiel 
-GetGameIntent Gib mir ein Spiel für {location} 
-GetGameIntent Geben Sie mir ein Spiel
-GetGameIntent Geben Sie mir für {location} ein Spiel 
-GetGameIntent Geben Sie mir ein {exertion} Spiel 
-GetGameIntent Geben Sie mir ein {exertion} für {location} Spiel 
-GetGameIntent Geben Sie mir für {location} ein {exertion} Spiel 
-
 GetActivityIntent Ich möchte etwas tun
 GetActivityIntent Ich möchte etwas machen
 GetActivityIntent Ich möchte {location} etwas tun

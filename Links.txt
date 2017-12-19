@@ -1,0 +1,8 @@
+https://developer.amazon.com/edw/home.html#/skill/amzn1.ask.skill.59790ca8-93ed-42cb-b289-35ac1d2325e1/de_DE/testing
+https://console.aws.amazon.com/lambda/home?region=us-east-1#/functions/mm_exEins?tab=graph
+https://github.com/alexa/skill-samples-java
+https://developer.amazon.com/de/docs/custom-skills/slot-type-reference.html#number
+http://stleary.github.io/JSON-java/index.html
+http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/SettingUp.DynamoWebService.html
+https://github.com/alexa/skill-samples-java/tree/master/scorekeeper
+https://developer.amazon.com/de/docs/custom-skills/define-synonyms-and-ids-for-slot-type-values-entity-resolution.html
