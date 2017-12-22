@@ -28,6 +28,9 @@ import com.amazon.speech.json.SpeechletRequestEnvelope;
 import com.amazon.speech.ui.PlainTextOutputSpeech;
 import com.amazon.speech.ui.Reprompt;
 import com.amazon.speech.ui.SimpleCard;
+import com.amazonaws.AmazonClientException;
+import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.amazon.speech.ui.OutputSpeech;
@@ -40,6 +43,8 @@ import com.amazonaws.services.dynamodbv2.model.KeySchemaElement;
 import com.amazonaws.services.dynamodbv2.model.KeyType;
 import com.amazonaws.services.dynamodbv2.model.ProvisionedThroughput;
 import com.amazonaws.services.dynamodbv2.model.ScalarAttributeType;
+
+
 
 public class SpaceGeekSpeechlet implements SpeechletV2 {
     private static final Logger log = LoggerFactory.getLogger(SpaceGeekSpeechlet.class);
@@ -64,12 +69,22 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     String speechText;
     String helpText = "Ich kann verschiedene Aktivitäten, Spiele und Übungen, drinnen oder draußen, vorschlagen";
     String taskDescription = "Hallo, ich kann Empfehlungen für eine Tagesaktivität geben";
+    String askForActivityType = "Welche Art von Tätigkeit darf ich vorschlagen? Ich kann Ihnen Spiele, Übungen oder allgemeine Aktivitäten empfehlen";
+    String askForGameLocation = "Möchten Sie drinnen oder draußen spielen?"; 
+    String askForGameLocationReprompt = "Ich habe nichts verstanden. Darf ich Ihnen ein Spiel für drinnen oder draußen vorschlagen?"; 
+    String askForGameExertion = "Möchten Sie etwas entspannendes spielen oder darf es leicht anstrengend sein?"; 
+    String askForGameExertionReprompt = "Ich habe nichts verstanden. Möchten Sie etwas entspannendes oder anstrengendes spielen?"; 
+    
+    String askForLocation = "Möchten Sie drinnen bleiben oder rausgehen?";
+    String askForLocationRe = "Ich konnte nichts verstehen. Möchten Sie heute drinnen bleiben oder rausgehen?";
+    String askForExertion = "Möchten Sie etwas entspanntes oder aktives unternehmen?";
+    String askForExertionRe = "Ich konnte nichts verstehen. Möchten Sie heute lieber etwas entspanntes oder aktives unternehmen?";
+    
     String[] proposals = new String[] {
     		"Wie wäre es hiermit? ", 
     		"Ich schlage Folgendes vor: ", 
     		"Das hier klingt nach einer guten Beschäftigung: "
     };
-    
     private static final String[] GREETINGS_FORMAL = new String[] {
     		"Hallo, wie kann ich Ihnen helfen",
     		"Was kann ich für Sie tun",
@@ -90,10 +105,10 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     private boolean formalSpeech = true; 
     private boolean firstMeeting = true; 
     // Activity data
-    private String activityType; // exercise, game, activity
-    private String activityExertion; // relaxed, exhausting
-    private String activityLocation; // inside, outside, both
-    private boolean activityWithFriends; // true, false
+    private String activityType = "leer"; // exercise, game, activity
+    private String activityExertion = "leer"; // relaxed, exhausting
+    private String activityLocation = "leer"; // inside, outside, both
+    private boolean activityWithFriends = false; // true, false
     private ArrayList<String> activityExcludeBodypart = new ArrayList<>(); // Exclude activities that put strain on these body parts
     private ArrayList<String> activityIncludeBodypart = new ArrayList<>(); // Choose activities that include these body parts
     // Actity data set 
@@ -110,6 +125,7 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     private boolean goodWeather;
     // database and storage data
     private AmazonDynamoDBClient dbclient;
+    static AmazonDynamoDB dynamoDB;
     private Session session; 
     
     // Array mit Fakten
@@ -217,8 +233,16 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     
     public SpeechletResponse onIntent(SpeechletRequestEnvelope<IntentRequest> requestEnvelope) {
         IntentRequest request = requestEnvelope.getRequest();
-        log.info("onIntent requestId={}, sessionId={}", request.getRequestId(), requestEnvelope.getSession().getSessionId());
-
+        session = requestEnvelope.getSession();
+        
+        log.info("onIntent requestId={}, sessionId={}", request.getRequestId()  , requestEnvelope.getSession().getSessionId());
+        getWeather();
+        if(goodWeather) {
+        	log.info("Weather is good");
+        } else {
+        	log.info("Weather is bad");
+        }
+        
         Intent intent = request.getIntent();
         String intentName = (intent != null) ? intent.getName() : null;
         PlainTextOutputSpeech outputSpeech;
@@ -230,8 +254,6 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         	return getNewFactResponse(intent);
         case "RepeatIntent":
         	return repeat(intent);
-        case "BmiIntent": 
-        	return getHelpResponse();
         case "SetFormalSpeechIntent":
         	return setFormalSpeech(intent); 
         case "SetNameIntent":
@@ -240,6 +262,8 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         	return getExercise(intent);
         case "GetGameIntent":
         	return getGame(intent);
+        case "SetLocationIntent":
+        	return setLocation(intent);
     	case "AMAZON.HelpIntent":
     		return getHelpResponse();
     	case "AMAZON.StopIntent":
@@ -274,11 +298,6 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
 	    	requestId = requestEnvelope.getRequest().getRequestId();
 	        sessionId = requestEnvelope.getSession().getSessionId();
 	        goodWeather = getWeather(); 
-	        
-	        if (dbclient == null) {
-	        	dbclient = new AmazonDynamoDBClient();
-	        	
-	        }
 	    }
 	
 	// Change or set name for the first time
@@ -330,29 +349,22 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     	     
     	activityType = "game";
     	activityTypeSet = true; 
-    	session.setAttribute("activityType", "game");
-    	session.setAttribute("activityTypeSet", true);
-    	
-    	// Check if location was set 
-    	if(session.getAttribute("activityLocation") != null) {
-    		
-    	}
-    	
         Slot locationSlot = intent.getSlot("location");
         Slot exertionSlot = intent.getSlot("exertion");
         
-        
-     // Check if activity location was provided
+        // Check if activity location was provided
         if(locationSlot != null && locationSlot.getValue() != null && !locationSlot.getValue().equalsIgnoreCase("")){
         	String location = locationSlot.getValue().toLowerCase();
         
 	        if(Arrays.asList(LOCATIONS_INSIDE).contains(location)) {
 	        	activityLocationSet = true;
 	        	activityLocation = "inside";
+	        	//session.setAttribute("activityLocation", "inside");
 	        	log.info("location: " + location);
 	        } else if (Arrays.asList(LOCATIONS_OUTSIDE).contains(location)) {
 	        	activityLocationSet = true;
 	        	activityLocation = "outside";   
+	        	//session.setAttribute("activityLocation", "outside");
 	        	log.info("location: " + location);
 	        } else {
 	        	activityLocationSet = false;
@@ -363,7 +375,6 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         	activityLocationSet = false;
         	log.info("Es wurde kein Ort angegeben");
         }
-        
         
         // Check if activity exertion was provided
         if(exertionSlot != null && exertionSlot.getValue() != null && !exertionSlot.getValue().equalsIgnoreCase("")){
@@ -387,20 +398,34 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         	log.info("Es wurde keine Exertion angegeben");
         }
         
-    
-        // Gather additional info
-        if(!activityLocationSet) {return SpeechletResponse.newAskResponse(getPlainTextOutputSpeech("Nachricht"), getReprompt(getPlainTextOutputSpeech("Wiederholung")));
-        }
-        if (!activityExertionSet) {
-        	// get additional data
-        }
         
+        // Set location/exertion to inside if weather is bad (since there are no active games for inside
+        //if (goodWeather) {
+        	// Ask for location data
+        	if(!activityLocationSet) {
+        		log.info("Weather is good");
+        		return SpeechletResponse.newAskResponse(getPlainTextOutputSpeech(askForGameLocation), getReprompt(getPlainTextOutputSpeech(askForGameLocationReprompt)));
+        	} 
+        	if (!activityExertionSet) {
+        		log.info("Weather is good");
+        		return SpeechletResponse.newAskResponse(getPlainTextOutputSpeech(askForGameExertion), getReprompt(getPlainTextOutputSpeech(askForGameExertionReprompt)));
+        	}
+        /*} else {
+        	log.info("Weather is bad");
+        	activityLocationSet = true;
+        	activityLocation = "inside";
+        	activityExertionSet = true;
+        	activityExertion = "relaxed";
+        }*/
         
         // Get game from DB according to set parameters
         String game = "Schach spielen";
         
+        // Info output
+        String infoOut = "Art: " + activityType + ". Ort: " + activityLocation + ". Anstrenging" + activityExertion;
+        
         // Generate output
-        int random = new Random().nextInt(proposals.length + 1);
+        int random = new Random().nextInt(proposals.length);
         String proposal = proposals[random] + game;
         
        
@@ -417,16 +442,109 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     	return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech("Platzhalter"));
     }
     
-    private SpeechletResponse getActivityType() {
-    	return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech("Platzhalter"));
+    
+    
+    // Asks for exertion
+    private SpeechletResponse setExertion(Intent intent) {
+		
+    	log.info("setExertion");
+    	
+    	Slot exertionSlot = intent.getSlot("exertion");
+    	
+    	// Check if activity exertion was provided
+        if(exertionSlot != null && exertionSlot.getValue() != null && !exertionSlot.getValue().equalsIgnoreCase("")){
+        	String exertion= exertionSlot.getValue().toLowerCase();
+        
+	        if(Arrays.asList(EXERTIONS_EXHAUSTING).contains(exertion)) {
+	        	activityExertionSet = true;
+	        	activityExertion = "exhausting";
+	        	log.info("exertion: " + exertion);
+	        } else if (Arrays.asList(EXERTIONS_RELAXED).contains(exertion)) {
+	        	activityExertionSet = true;
+	        	activityExertion = "relaxed";   
+	        	log.info("exertion: " + exertion);
+	        } else {
+	        	activityExertionSet = false;
+	        	log.info("Diese Anstrengungist nicht im Array");
+	        }
+        } else {
+        	// Keine exertion angegeben, nachfragen
+        	activityLocationSet = false;
+        	log.info("Es wurde keine exertion angegeben");
+        	return SpeechletResponse.newAskResponse(getPlainTextOutputSpeech(askForExertion), getReprompt(getPlainTextOutputSpeech(askForExertionRe)));
+        }
+        
+    	if(activityTypeSet) {
+    		switch (activityType) {
+    		case "game":
+    			return getGame(intent);
+    		case "exercise":
+    			return getExercise(intent);
+    		case "activity":
+    			return getActivity(intent);
+    		}
+    	} else {
+    		return setActivityType(intent);
+    	}
+    	
+    	return null; 
     }
     
-    private SpeechletResponse setLocation() {
-    	return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech("Platzhalter"));
+    // Returns a game for the user 
+    private SpeechletResponse setLocation(Intent intent) {
+		
+    	log.info("setLocation");
+    	
+    	Slot locationSlot = intent.getSlot("location");
+    	
+    	// Check if activity location was provided
+        if(locationSlot != null && locationSlot.getValue() != null && !locationSlot.getValue().equalsIgnoreCase("")){
+        	String location = locationSlot.getValue().toLowerCase();
+        
+	        if(Arrays.asList(LOCATIONS_INSIDE).contains(location)) {
+	        	activityLocationSet = true;
+	        	activityLocation = "inside";
+	        	//session.setAttribute("activityLocation", "inside");
+	        	log.info("location: " + location);
+	        } else if (Arrays.asList(LOCATIONS_OUTSIDE).contains(location)) {
+	        	activityLocationSet = true;
+	        	activityLocation = "outside";   
+	        	//session.setAttribute("activityLocation", "outside");
+	        	log.info("location: " + location);
+	        } else {
+	        	activityLocationSet = false;
+	        	log.info("Dieser Ort ist nicht im Array");
+	        }
+        } else {
+        	// Kein Ort angegeben, nachfragen
+        	activityLocationSet = false;
+        	log.info("Es wurde kein Ort angegeben");
+        	return SpeechletResponse.newAskResponse(getPlainTextOutputSpeech(askForLocation), getReprompt(getPlainTextOutputSpeech(askForLocationRe)));
+        }
+        
+    	if(activityTypeSet) {
+    		switch (activityType) {
+    		case "game":
+    			log.info("ActivityType = game");
+    			return getGame(intent);
+    		case "exercise":
+    			log.info("ActivityType = exercise");
+    			return getExercise(intent);
+    		case "activity":
+    			log.info("ActivityType = activity");
+    			return setActivityType(intent);
+    		}
+    	} else {
+    		return setActivityType(intent);
+    	}
+    	
+    	return null;
     }
     
-    private SpeechletResponse setExertion() {
-    	return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech("Platzhalter"));
+    // Returns a game for the user 
+    private SpeechletResponse setActivityType(Intent intent) {
+		log.info("setActivityIntent");
+    	return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech("Platzhalter: Welche Art Aktivität darf es sein?"));
     }
     
     private SpeechletResponse setBodyPart() {
@@ -436,10 +554,12 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     
     
     
-    
-    
-    
 
+    
+    
+    
+    
+    
     ////////// ADDITIONAL FUNCTIONS /////////////////////////////////////////////////////////////////////////////////////////
     
     // Fetch weather data and get weather description and if weather is good enough for going out

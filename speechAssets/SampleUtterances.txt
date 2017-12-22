@@ -178,7 +178,16 @@ GetStatusIntent Lies mir vor was Du hast?
 GetStatusIntent Lesen Sie mir vor was Sie haben?
 GetStatusIntent Was ist der Status?
 
-
+SetLocationIntent {location} drinnen
+SetLocationIntent {location} drinnen bitte
+SetLocationIntent ich möchte {location} bleiben
+SetLocationIntent ich will {location} bleiben
+SetLocationIntent ich möchte {location} sein
+SetLocationIntent ich will {location} sein
+SetLocationIntent ich möchte {location} etwas spielen
+SetLocationIntent ich möchte {location} trainieren
+SetLocationIntent ich will {location} etwas spielen
+SetLocationIntent ich will {location} trainieren
 
 
 

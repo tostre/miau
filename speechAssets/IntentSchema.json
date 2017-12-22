@@ -38,6 +38,11 @@
 			"name": "exertion",
 			"type": "LIST_OF_EXERTIONS"}]},
 	{
+    	"intent": "SetLocationIntent",
+    	"slots":[{
+			"name": "location",
+			"type": "LIST_OF_LOCATIONS"}]},
+	{
     	"intent": "GetStatusIntent",
     	"slots":[{
     		"name": "activityType",
