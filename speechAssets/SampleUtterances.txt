@@ -187,7 +187,7 @@ SetLocationIntent ich will {location} sein
 SetLocationIntent ich möchte {location} etwas spielen
 SetLocationIntent ich möchte {location} trainieren
 SetLocationIntent ich will {location} etwas spielen
-SetLocationIntent ich will {location} trainieren
+SetLocationIntent ich will {location} trainieren 
 
 
 
