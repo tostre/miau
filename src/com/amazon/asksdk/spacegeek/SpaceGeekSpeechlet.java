@@ -246,12 +246,20 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     		"training",
     		"traineren"
     };
+    private static final String[] ACTIVITY_TYPE_OCCUPATION = new String[] {
+    		"beschäftigung",
+    		"tätigkeit",
+    		"allgemeine beschäftigung",
+    		"allgemeine tätigket",
+    		"normale beschäftigung",
+    		"normale tätigkeit"
+    };
     private static final String[] ACTIVITY_TYPE_ACTIVITY = new String[] {
     		"beschäftigung",
     		"tätigkeit",
-    		"allgemeine Beschäftigung",
+    		"allgemeine beschäftigung",
     		"allgemeine tätigket",
-    		"normale Beschäftigung",
+    		"normale beschäftigung",
     		"normale tätigkeit"
     };
     
@@ -355,8 +363,10 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
             	return getGame(intent, session);
         	case "GetExerciseIntent":
             	return getExercise(intent, session);
-        	case "GetActivityIntent":
-        		return getActivity(intent, session);
+        	case "GetOccupationIntent":
+        		return getOccupation(intent, session);
+            //case "GetActivityIntent":
+        		//return getActivity(intent, session);
             //case "SetLocationIntent":
             	//getLocation(intent, session);
             //case "SetExertionIntent":
@@ -382,7 +392,7 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         	case "exercise":
         		return getExercise(intent, session);
         	case "activity": 
-        		return getActivity(intent, session);
+        		return getOccupation(intent, session);
         	default: 
         		return getAskResponse("Gino", "Aktivitätstyp: " + activityType + "Typ gesetzt. Das habe ich leider nicht verstanden.");
         	}
@@ -591,11 +601,63 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         }
     }
     
-    // Returns an (non-game, non-exercise) activity for the user 
-    private SpeechletResponse getActivity(Intent intent, Session session) {
+    // Returns an occupation for the user 
+    private SpeechletResponse getOccupation(Intent intent, Session session) {
     	// Initialize params
     	//session.setAttribute("activityType", "game");
-    	activityType = "game";
+    	activityType = "occupation";
+    	activityTypeSet = true; 
+        SpeechletResponse locationOutput = null; 
+        SpeechletResponse exertionOutput = null;
+        
+        
+        
+        
+        
+        
+        // Check if location and exertion were provided as slots
+        if(session.getAttributes().containsKey("activityLocationSet")) {
+        	if(!(Boolean) session.getAttribute("activityLocationSet")) {
+        		locationOutput = getLocation(intent, session);
+        	}
+        	
+        } else {
+        	session.setAttribute("activityLocationSet", false);
+        	locationOutput = getLocation(intent, session);
+        }
+        
+        if(session.getAttributes().containsKey("activityExertionSet")) {
+        	if(!(Boolean) session.getAttribute("activityExertionSet")) {
+        		exertionOutput = getExertion(intent, session);
+        	}
+        } else {
+        	session.setAttribute("activityExertionSet", false);
+        	exertionOutput = getExertion(intent, session);
+        }
+        
+        // Ask for whats missing
+        if(locationOutput != null) {
+	        return locationOutput; 
+	    }
+        if(exertionOutput != null) {
+	        return exertionOutput; 
+        }
+        
+        
+        
+        // Gets a game from the db according to set params
+        if(!goodWeather) {
+        	return fetchFromDb(badWeatherInfo, activityType, (String) session.getAttribute("activityLocation"), (String) session.getAttribute("activityExertion"), null);
+        } else {
+        	return fetchFromDb("", activityType, (String) session.getAttribute("activityLocation"), (String) session.getAttribute("activityExertion"), null);
+        }
+    }
+    
+    // Returns an (non-game, non-exercise) activity for the user 
+    /*private SpeechletResponse getActivity(Intent intent, Session session) {
+    	// Initialize params
+    	//session.setAttribute("activityType", "game");
+    	activityType = "activity";
     	activityTypeSet = true; 
     	SpeechletResponse typeOutput = null;
         SpeechletResponse locationOutput = null; 
@@ -603,17 +665,11 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         
         
         
-        // Check if location and exertion were provided as slots
-        if(session.getAttributes().containsKey("activityTypeSet")) {
-        	if(!(Boolean) session.getAttribute("activityTypeSet")) {
-        		typeOutput = getType(intent, session);
-        	}
-        	
-        } else {
-        	session.setAttribute("activityTypeSet", false);
-        	typeOutput = getType(intent, session);
-        }
+        // Aks for the kind of activity the user wants to do
+        typeOutput = getType(intent, session);
         
+        
+        // Check if location and exertion were provided as slots
         if(session.getAttributes().containsKey("activityLocationSet")) {
         	if(!(Boolean) session.getAttribute("activityLocationSet")) {
         		locationOutput = getLocation(intent, session);
@@ -654,7 +710,7 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         } else {
         	return fetchFromDb("", activityType, (String) session.getAttribute("activityLocation"), (String) session.getAttribute("activityExertion"), null);
         }
-    }
+    }*/
     
     
     
@@ -736,7 +792,7 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     }
     
     // Returns a game for the user 
-    private SpeechletResponse getType(Intent intent, Session session) {
+    /*private SpeechletResponse getType(Intent intent, Session session) {
 		log.info("setActivityIntent");
 		Slot typeSlot = intent.getSlot("type");
 
@@ -749,17 +805,17 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
 	        if(Arrays.asList(ACTIVITY_TYPE_GAME).contains(type)) {
 	        	activityType = "game";
 	        	activityTypeSet = true; 
-	        	getGame(intent, session);
+	        	return getGame(intent, session);
 	        }
 	        if(Arrays.asList(ACTIVITY_TYPE_EXERCISE).contains(type)) {
 	        	activityType = "exercise";
 	        	activityTypeSet = true; 
-	        	getExercise(intent, session);
+	        	return getExercise(intent, session);
 	        }
 	        if(Arrays.asList(ACTIVITY_TYPE_ACTIVITY).contains(type)) {
 	        	activityType = "activity";
 	        	activityTypeSet = true; 
-	        	getActivity(intent, session);
+	        	return getActivity(intent, session);
 	        }
 	        
         } else {
@@ -771,7 +827,7 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
 	        
         
 		return null;
-    }
+    }*/
     
     // Checks if a bodypart (for the exercise) was provided, if not, asks for it
     private SpeechletResponse getBodypart(Intent intent, Session session) {
