@@ -80,6 +80,10 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     String askForLocationRe = "Ich konnte nichts verstehen. Möchten Sie heute drinnen bleiben oder rausgehen?";
     String askForExertion = "Möchten Sie etwas entspanntes oder aktives unternehmen?";
     String askForExertionRe = "Ich konnte nichts verstehen. Möchten Sie heute lieber etwas entspanntes oder aktives unternehmen?";
+    String askForBodypart = "Welchen Körperteil möchten Sie traineren?";
+    String askForBodypartRe = "Ich konnte nichts verstehen. Ich kann ihnen Übungen für die Arme, Beine, Schultern, den Rücken oder Bauch und die Brust empfehlen. Welchen Körerteil möchten Sie traineren? ";
+    String askForType = "Welche Art Tätigkeit soll ich Ihnen vorschlagen? Ein Spiel, eine Übung oder eine allgemeine Beschäftigung? ";
+    String askForTypeRe = "Ich konnte nichts verstehen. Ich kann Ihnen Spiele, Übungen oder allgemeine Beschäftigungen vorschlagen. Was möchten Sie heute machen?";
     
     String badWeatherInfo = "Da das Wetter heute nicht gut werden soll, empfehle ich drinnen zu bleiben. ";
     
@@ -131,7 +135,7 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     // weather data
     private String fetchWeatherUrl = "http://api.openweathermap.org/data/2.5/weather?id=2935517&APPID=44956c0ccd5905a239c4ee266863eb06";
     private String weatherDescription;
-    private boolean goodWeather;
+    private boolean goodWeather = true;
     
     // database and storage data
     private AmazonDynamoDBClient dbclient;
@@ -208,11 +212,57 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     		"Deins",
     		"Dich"
     };
+    private static final String[] BODYPARTS = new String[] {
+    		"bein",
+    		"beine", 
+    		"hüfte",
+    		"bauch",
+    		"rücken",
+    		"brust",
+    		"arme",
+    		"arm",
+    		"schultern",
+    		"schulter",
+    		"nacken",
+    		"kopf",
+    		"knie",
+    		"keinen bestimmten",
+    		"keine bestimmten",
+    		"kein bestimmtes",
+    		"alle"
+    };
+    private static final String[] ACTIVITY_TYPE_GAME = new String[] {
+    		"spiel",
+    		"spiele",
+    		"spielen",
+    		"brettspiel",
+    		"brettspiele",
+    		"kartenspiel",
+    		"kartenspiele"
+    };
+    private static final String[] ACTIVITY_TYPE_EXERCISE = new String[] {
+    		"übung",
+    		"üben",
+    		"training",
+    		"traineren"
+    };
+    private static final String[] ACTIVITY_TYPE_ACTIVITY = new String[] {
+    		"beschäftigung",
+    		"tätigkeit",
+    		"allgemeine Beschäftigung",
+    		"allgemeine tätigket",
+    		"normale Beschäftigung",
+    		"normale tätigkeit"
+    };
     
     // DB emulator (game)
     String[] gameInsideRelaxedDb = new String[] {
     		"drinnen etwas entspanntes spielen eins",
     		"drinnen etwas entspanntes spielen zwei"
+    };
+    String[] gameInsideExhaustingDb = new String[] {
+    		"drinnen etwas anstrengendes spielen eins",
+    		"drinnen etwas anstrengendes spielen zwei"
     };
 	String[] gameOutsideRelaxedDb = new String[] {
 	    	"draußen etwas entspanntes spielen eins",
@@ -242,21 +292,13 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
 	};  
     
     // DB emulator exercise
-	String[] exerciseInsideRelaxedDb = new String[] {
-    		"drinnen etwas entspanntes trainieren eins",
-    		"drinnen etwas entspanntes trainieren zwei"
-    };
     String[] exerciseInsideExhaustingDb = new String[] {
-    		"draußen etwas anstrengendes trainieren eins",
-    		"draußen etwas anstrengendes trainieren zwei"
-	};
-	String[] exerciseOutsideRelaxedDb = new String[] {
-	    	"draußen etwas entspanntes trainieren eins",
-	    	"draußen etwas entspanntes trainieren zwei"
+    		"draußen etwas trainieren eins",
+    		"draußen etwas trainieren zwei"
 	};
 	String[] exerciseOutsideExhaustingDb = new String[] {
-    		"draußen etwas anstrengendes trainieren eins",
-    		"draußen etwas anstrengendes trainieren zwei"
+    		"draußen etwas trainieren eins",
+    		"draußen etwas trainieren zwei"
 	};  
     
     
@@ -312,11 +354,13 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
             case "GetGameIntent":
             	return getGame(intent, session);
         	case "GetExerciseIntent":
-            	return getExercise(intent);
-            case "SetLocationIntent":
-            	getLocation(intent, session);
-            case "SetExertionIntent":
-            	getExertion(intent, session);
+            	return getExercise(intent, session);
+        	case "GetActivityIntent":
+        		return getActivity(intent, session);
+            //case "SetLocationIntent":
+            	//getLocation(intent, session);
+            //case "SetExertionIntent":
+            	//getExertion(intent, session);
             // Built-in intents
             case "AMAZON.HelpIntent":
         		return getHelpResponse();
@@ -336,7 +380,9 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         	case "game":
         		return getGame(intent, session);
         	case "exercise":
-        		return getExercise(intent);
+        		return getExercise(intent, session);
+        	case "activity": 
+        		return getActivity(intent, session);
         	default: 
         		return getAskResponse("Gino", "Aktivitätstyp: " + activityType + "Typ gesetzt. Das habe ich leider nicht verstanden.");
         	}
@@ -487,20 +533,127 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         
         // Gets a game from the db according to set params
         if(!goodWeather) {
-        	return fetchFromDb(badWeatherInfo, activityType, (String) session.getAttribute("activityLocation"), (String) session.getAttribute("activityExertion"));
+        	return fetchFromDb(badWeatherInfo, activityType, (String) session.getAttribute("activityLocation"), (String) session.getAttribute("activityExertion"), null);
         } else {
-        	return fetchFromDb("", activityType, (String) session.getAttribute("activityLocation"), (String) session.getAttribute("activityExertion"));
+        	return fetchFromDb("", activityType, (String) session.getAttribute("activityLocation"), (String) session.getAttribute("activityExertion"), null);
         }
     }
     
     // Returns an exercise for the user 
-    private SpeechletResponse getExercise(Intent intent) {
-    	return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech("Platzhalter"));
+    private SpeechletResponse getExercise(Intent intent, Session session) {
+
+    	// Initialize params
+    	//session.setAttribute("activityType", "game");
+    	activityType = "exercise";
+    	activityTypeSet = true; 
+        SpeechletResponse locationOutput = null; 
+        SpeechletResponse bodypartOutput = null; 
+        
+        
+        
+        // Check if location and exertion were provided as slots
+        if(session.getAttributes().containsKey("activityLocationSet")) {
+        	if(!(Boolean) session.getAttribute("activityLocationSet")) {
+        		locationOutput = getLocation(intent, session);
+        	}
+        	
+        } else {
+        	session.setAttribute("activityLocationSet", false);
+        	locationOutput = getLocation(intent, session);
+        }
+        
+        if(session.getAttributes().containsKey("activityBodypartSet")) {
+        	if(!(Boolean) session.getAttribute("activityBodypartSet")) {
+        		bodypartOutput = getBodypart(intent, session);
+        	}
+        } else {
+        	session.setAttribute("activityBodypartSet", false);
+        	bodypartOutput = getBodypart(intent, session);
+        }
+        
+        
+        
+        // Ask for missing params
+        if(locationOutput != null) {
+	        return locationOutput; 
+	    }
+        if(bodypartOutput != null) {
+	        return bodypartOutput; 
+        }
+        
+        
+        
+        // Gets a game from the db according to set params
+        if(!goodWeather) {
+        	return fetchFromDb(badWeatherInfo, activityType, (String) session.getAttribute("activityLocation"), "Exhausting", (String) session.getAttribute("activityBodypart"));
+        } else {
+        	return fetchFromDb("", activityType, (String) session.getAttribute("activityLocation"), "Exhausting", (String) session.getAttribute("activityBodypart"));
+        }
     }
     
     // Returns an (non-game, non-exercise) activity for the user 
-    private SpeechletResponse getActivity(Intent intent) {
-    	return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech("Platzhalter"));
+    private SpeechletResponse getActivity(Intent intent, Session session) {
+    	// Initialize params
+    	//session.setAttribute("activityType", "game");
+    	activityType = "game";
+    	activityTypeSet = true; 
+    	SpeechletResponse typeOutput = null;
+        SpeechletResponse locationOutput = null; 
+        SpeechletResponse exertionOutput = null;
+        
+        
+        
+        // Check if location and exertion were provided as slots
+        if(session.getAttributes().containsKey("activityTypeSet")) {
+        	if(!(Boolean) session.getAttribute("activityTypeSet")) {
+        		typeOutput = getType(intent, session);
+        	}
+        	
+        } else {
+        	session.setAttribute("activityTypeSet", false);
+        	typeOutput = getType(intent, session);
+        }
+        
+        if(session.getAttributes().containsKey("activityLocationSet")) {
+        	if(!(Boolean) session.getAttribute("activityLocationSet")) {
+        		locationOutput = getLocation(intent, session);
+        	}
+        	
+        } else {
+        	session.setAttribute("activityLocationSet", false);
+        	locationOutput = getLocation(intent, session);
+        }
+        
+        if(session.getAttributes().containsKey("activityExertionSet")) {
+        	if(!(Boolean) session.getAttribute("activityExertionSet")) {
+        		exertionOutput = getExertion(intent, session);
+        	}
+        } else {
+        	session.setAttribute("activityExertionSet", false);
+        	exertionOutput = getExertion(intent, session);
+        }
+        
+        
+        
+        // Ask for missing params
+        if(typeOutput != null) {
+	        return typeOutput; 
+	    }
+        if(locationOutput != null) {
+	        return locationOutput; 
+	    }
+        if(exertionOutput != null) {
+	        return exertionOutput; 
+        }
+        
+        
+        
+        // Gets a game from the db according to set params
+        if(!goodWeather) {
+        	return fetchFromDb(badWeatherInfo, activityType, (String) session.getAttribute("activityLocation"), (String) session.getAttribute("activityExertion"), null);
+        } else {
+        	return fetchFromDb("", activityType, (String) session.getAttribute("activityLocation"), (String) session.getAttribute("activityExertion"), null);
+        }
     }
     
     
@@ -551,96 +704,105 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     private SpeechletResponse getExertion(Intent intent, Session session) {
     	Slot exertionSlot = intent.getSlot("exertion");
 
-    	if(goodWeather) {
-        	// Check if activity exertion was provided
-	        if(exertionSlot != null && exertionSlot.getValue() != null && !exertionSlot.getValue().equalsIgnoreCase("")){
-	        	String exertion = exertionSlot.getValue().toLowerCase();
-	        	log.info("getExertion: " + exertion);
+    	// Check if activity exertion was provided
+        if(exertionSlot != null && exertionSlot.getValue() != null && !exertionSlot.getValue().equalsIgnoreCase("")){
+        	String exertion = exertionSlot.getValue().toLowerCase();
+        	log.info("getExertion: " + exertion);
+        
+	        if(Arrays.asList(EXERTIONS_RELAXED).contains(exertion)) {
+	        	session.setAttribute("activityExertionSet", true);
+	        	session.setAttribute("activityExertion", "relaxed");
+	        	//activityExertionSet = true;
+	        	//activityExertion = "relaxed";
+	        } 
 	        
-		        if(Arrays.asList(EXERTIONS_RELAXED).contains(exertion)) {
-		        	session.setAttribute("activityExertionSet", true);
-		        	session.setAttribute("activityExertion", "relaxed");
-		        	//activityExertionSet = true;
-		        	//activityExertion = "relaxed";
-		        } 
-		        
-		        if (Arrays.asList(EXERTIONS_EXHAUSTING).contains(exertion)) {
-		        	session.setAttribute("activityExertionSet", true);
-		        	session.setAttribute("activityExertion", "exhausting");
-		        	//activityExertionSet = true;
-		        	//activityExertion = "exhausting";   
-		       
-		        }
-		        
-	        } else {
-	        	// Kein Exertion angegeben, nachfragen
-	        	session.setAttribute("activityExertionSet", false);
-	        	//activityExertionSet = false;
-	        	return SpeechletResponse.newAskResponse(getPlainTextOutputSpeech(askForExertion), getReprompt(getPlainTextOutputSpeech(askForExertionRe)));
+	        if (Arrays.asList(EXERTIONS_EXHAUSTING).contains(exertion)) {
+	        	session.setAttribute("activityExertionSet", true);
+	        	session.setAttribute("activityExertion", "exhausting");
+	        	//activityExertionSet = true;
+	        	//activityExertion = "exhausting";   
+	       
 	        }
 	        
         } else {
-        	session.setAttribute("activityExertionSet", true);
-        	session.setAttribute("activityExertion", "relaxed");
-        	//activityExertionSet = true; 
-        	//activityExertion = "relaxed";
-        	return null; 
+        	// Kein Exertion angegeben, nachfragen
+        	session.setAttribute("activityExertionSet", false);
+        	//activityExertionSet = false;
+        	return SpeechletResponse.newAskResponse(getPlainTextOutputSpeech(askForExertion), getReprompt(getPlainTextOutputSpeech(askForExertionRe)));
         }
+	        
+        
 		return null;
     }
     
     // Returns a game for the user 
-    private SpeechletResponse setActivityType(Intent intent) {
+    private SpeechletResponse getType(Intent intent, Session session) {
 		log.info("setActivityIntent");
-    	return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech("Platzhalter: Welche Art Aktivität darf es sein?"));
+		Slot typeSlot = intent.getSlot("type");
+
+    	
+    	// Check if type was provided
+        if(typeSlot != null && typeSlot.getValue() != null && !typeSlot.getValue().equalsIgnoreCase("")){
+        	String type = typeSlot.getValue().toLowerCase();
+        	log.info("getType: " + type);
+        
+	        if(Arrays.asList(ACTIVITY_TYPE_GAME).contains(type)) {
+	        	activityType = "game";
+	        	activityTypeSet = true; 
+	        	getGame(intent, session);
+	        }
+	        if(Arrays.asList(ACTIVITY_TYPE_EXERCISE).contains(type)) {
+	        	activityType = "exercise";
+	        	activityTypeSet = true; 
+	        	getExercise(intent, session);
+	        }
+	        if(Arrays.asList(ACTIVITY_TYPE_ACTIVITY).contains(type)) {
+	        	activityType = "activity";
+	        	activityTypeSet = true; 
+	        	getActivity(intent, session);
+	        }
+	        
+        } else {
+        	// Kein bodypart angegeben, nachfragen
+        	session.setAttribute("activityTypeSet", false);
+        	//activitybodypartSet = false;
+        	return SpeechletResponse.newAskResponse(getPlainTextOutputSpeech(askForType), getReprompt(getPlainTextOutputSpeech(askForTypeRe)));
+        }
+	        
+        
+		return null;
     }
     
     // Checks if a bodypart (for the exercise) was provided, if not, asks for it
     private SpeechletResponse getBodypart(Intent intent, Session session) {
-    	Slot exertionSlot = intent.getSlot("exertion");
+    	Slot bodypartSlot = intent.getSlot("bodypart");
 
-    	if(goodWeather) {
-        	// Check if activity exertion was provided
-	        if(exertionSlot != null && exertionSlot.getValue() != null && !exertionSlot.getValue().equalsIgnoreCase("")){
-	        	String exertion = exertionSlot.getValue().toLowerCase();
-	        	log.info("getExertion: " + exertion);
-	        
-		        if(Arrays.asList(EXERTIONS_RELAXED).contains(exertion)) {
-		        	session.setAttribute("activityExertionSet", true);
-		        	session.setAttribute("activityExertion", "relaxed");
-		        	//activityExertionSet = true;
-		        	//activityExertion = "relaxed";
-		        } 
-		        
-		        if (Arrays.asList(EXERTIONS_EXHAUSTING).contains(exertion)) {
-		        	session.setAttribute("activityExertionSet", true);
-		        	session.setAttribute("activityExertion", "exhausting");
-		        	//activityExertionSet = true;
-		        	//activityExertion = "exhausting";   
-		       
-		        }
-		        
-	        } else {
-	        	// Kein Exertion angegeben, nachfragen
-	        	session.setAttribute("activityExertionSet", false);
-	        	//activityExertionSet = false;
-	        	return SpeechletResponse.newAskResponse(getPlainTextOutputSpeech(askForExertion), getReprompt(getPlainTextOutputSpeech(askForExertionRe)));
-	        }
+    	
+    	// Check if bodypart bodypart was provided
+        if(bodypartSlot != null && bodypartSlot.getValue() != null && !bodypartSlot.getValue().equalsIgnoreCase("")){
+        	String bodypart = bodypartSlot.getValue().toLowerCase();
+        	log.info("getBodypart: " + bodypart);
+        
+	        if(Arrays.asList(BODYPARTS).contains(bodypart)) {
+	        	session.setAttribute("activityBodypartSet", true);
+	        	session.setAttribute("activityBodypart", bodypart);
+	        } 
 	        
         } else {
-        	session.setAttribute("activityExertionSet", true);
-        	session.setAttribute("activityExertion", "relaxed");
-        	//activityExertionSet = true; 
-        	//activityExertion = "relaxed";
-        	return null; 
+        	// Kein bodypart angegeben, nachfragen
+        	session.setAttribute("activityBodypartSet", false);
+        	//activitybodypartSet = false;
+        	return SpeechletResponse.newAskResponse(getPlainTextOutputSpeech(askForBodypart), getReprompt(getPlainTextOutputSpeech(askForBodypartRe)));
         }
+	        
+        
 		return null;
     }
     
     
     
     
-    private SpeechletResponse fetchFromDb(String additionalInfo, String activityType, String activityLocation, String activityExertion) {
+    private SpeechletResponse fetchFromDb(String additionalInfo, String activityType, String activityLocation, String activityExertion, String bodypart) {
     	// Get game from DB according to set parameters
         String activity = "Schach spielen";
         
@@ -654,6 +816,9 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         	random = new Random().nextInt(gameInsideRelaxedDb.length);
         	activity = gameInsideRelaxedDb[random];
         	break; 
+        case "gameInsideExhaustingDb":
+        	random = new Random().nextInt(gameInsideExhaustingDb.length);
+        	activity = gameInsideExhaustingDb[random];
         case "gameOutsideRelaxedDb":
         	random = new Random().nextInt(gameOutsideRelaxedDb.length);
         	activity = gameOutsideRelaxedDb[random];
@@ -678,18 +843,10 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         	random = new Random().nextInt(activityOutsideExhaustingDb.length);
         	activity = activityOutsideExhaustingDb[random];
         	break;
-        case "exerciseInsideRelaxedDb":
-        	random = new Random().nextInt(exerciseInsideRelaxedDb.length);
-        	activity = exerciseInsideRelaxedDb[random];
-        	break;
         case "exerciseInsideExhaustingDb":
         	random = new Random().nextInt(exerciseInsideExhaustingDb.length);
         	activity = exerciseInsideExhaustingDb[random];
         	break; 
-        case "exerciseOutsideRelaxedDb":
-        	random = new Random().nextInt(exerciseOutsideRelaxedDb.length);
-        	activity = exerciseOutsideRelaxedDb[random];
-        	break;
         case "exerciseOutsideExhaustingDb":
         	random = new Random().nextInt(exerciseOutsideExhaustingDb.length);
         	activity = exerciseOutsideExhaustingDb[random];
