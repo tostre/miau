@@ -34,16 +34,21 @@ import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 import com.amazon.speech.ui.OutputSpeech;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
+import com.amazonaws.services.dynamodbv2.document.Item;
 import com.amazonaws.services.dynamodbv2.document.Table;
 import com.amazonaws.services.dynamodbv2.model.AttributeDefinition;
+import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import com.amazonaws.services.dynamodbv2.model.CreateTableRequest;
 import com.amazonaws.services.dynamodbv2.model.KeySchemaElement;
 import com.amazonaws.services.dynamodbv2.model.KeyType;
 import com.amazonaws.services.dynamodbv2.model.ProvisionedThroughput;
 import com.amazonaws.services.dynamodbv2.model.ScalarAttributeType;
+import com.amazonaws.services.dynamodbv2.model.TableDescription;
 
 
 
@@ -282,19 +287,19 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
 	};    
 	
 	// DB emulator activity
-    String[] activityInsideRelaxedDb = new String[] {
+    String[] occupationInsideRelaxedDb = new String[] {
     		"drinnen etwas entspanntes tun eins",
     		"drinnen etwas entspanntes tun zwei"
     };
-    String[] activityInsideExhaustingDb = new String[] {
+    String[] occupationInsideExhaustingDb = new String[] {
     		"drauﬂen etwas anstrengendes tun eins",
     		"drauﬂen etwas anstrengendes tun zwei"
 	};
-	String[] activityOutsideRelaxedDb = new String[] {
+	String[] occupationOutsideRelaxedDb = new String[] {
 	    	"drauﬂen etwas entspanntes tun eins",
 	    	"drauﬂen etwas entspanntes tun zwei"
 	};
-	String[] activityOutsideExhaustingDb = new String[] {
+	String[] occupationOutsideExhaustingDb = new String[] {
     		"drauﬂen etwas anstrengendes tun eins",
     		"drauﬂen etwas anstrengendes tun zwei"
 	};  
@@ -337,6 +342,7 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         
         
         initializeComponents(requestEnvelope);
+        dbTest(); 
     }
     
     public void onSessionEnded(SpeechletRequestEnvelope<SessionEndedRequest> requestEnvelope) {
@@ -436,11 +442,6 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     
     
     
-    
-    
-    
-    
-    
 	////////// SETUP AND USER DATA METHODS /////////////////////////////////////////////////////////////////////////////////////////
 	    
 	private SpeechletResponse firstSetup() {
@@ -489,15 +490,10 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
 
 
 
-
-
-
-
-
-
+	
 	////////// CORE FUNCTIONS /////////////////////////////////////////////////////////////////////////////////////////
     
-
+	// Returns a game for the user
     private SpeechletResponse getGame(Intent intent, Session session) {// Check if activity location was provided
     	
     	// Initialize params
@@ -652,70 +648,7 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         	return fetchFromDb("", activityType, (String) session.getAttribute("activityLocation"), (String) session.getAttribute("activityExertion"), null);
         }
     }
-    
-    // Returns an (non-game, non-exercise) activity for the user 
-    /*private SpeechletResponse getActivity(Intent intent, Session session) {
-    	// Initialize params
-    	//session.setAttribute("activityType", "game");
-    	activityType = "activity";
-    	activityTypeSet = true; 
-    	SpeechletResponse typeOutput = null;
-        SpeechletResponse locationOutput = null; 
-        SpeechletResponse exertionOutput = null;
-        
-        
-        
-        // Aks for the kind of activity the user wants to do
-        typeOutput = getType(intent, session);
-        
-        
-        // Check if location and exertion were provided as slots
-        if(session.getAttributes().containsKey("activityLocationSet")) {
-        	if(!(Boolean) session.getAttribute("activityLocationSet")) {
-        		locationOutput = getLocation(intent, session);
-        	}
-        	
-        } else {
-        	session.setAttribute("activityLocationSet", false);
-        	locationOutput = getLocation(intent, session);
-        }
-        
-        if(session.getAttributes().containsKey("activityExertionSet")) {
-        	if(!(Boolean) session.getAttribute("activityExertionSet")) {
-        		exertionOutput = getExertion(intent, session);
-        	}
-        } else {
-        	session.setAttribute("activityExertionSet", false);
-        	exertionOutput = getExertion(intent, session);
-        }
-        
-        
-        
-        // Ask for missing params
-        if(typeOutput != null) {
-	        return typeOutput; 
-	    }
-        if(locationOutput != null) {
-	        return locationOutput; 
-	    }
-        if(exertionOutput != null) {
-	        return exertionOutput; 
-        }
-        
-        
-        
-        // Gets a game from the db according to set params
-        if(!goodWeather) {
-        	return fetchFromDb(badWeatherInfo, activityType, (String) session.getAttribute("activityLocation"), (String) session.getAttribute("activityExertion"), null);
-        } else {
-        	return fetchFromDb("", activityType, (String) session.getAttribute("activityLocation"), (String) session.getAttribute("activityExertion"), null);
-        }
-    }*/
-    
-    
-    
-    
-    
+
     // Checks if location was provided, if not, asks for it
     private SpeechletResponse getLocation(Intent intent, Session session) {
     	Slot locationSlot = intent.getSlot("location");
@@ -791,44 +724,6 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
 		return null;
     }
     
-    // Returns a game for the user 
-    /*private SpeechletResponse getType(Intent intent, Session session) {
-		log.info("setActivityIntent");
-		Slot typeSlot = intent.getSlot("type");
-
-    	
-    	// Check if type was provided
-        if(typeSlot != null && typeSlot.getValue() != null && !typeSlot.getValue().equalsIgnoreCase("")){
-        	String type = typeSlot.getValue().toLowerCase();
-        	log.info("getType: " + type);
-        
-	        if(Arrays.asList(ACTIVITY_TYPE_GAME).contains(type)) {
-	        	activityType = "game";
-	        	activityTypeSet = true; 
-	        	return getGame(intent, session);
-	        }
-	        if(Arrays.asList(ACTIVITY_TYPE_EXERCISE).contains(type)) {
-	        	activityType = "exercise";
-	        	activityTypeSet = true; 
-	        	return getExercise(intent, session);
-	        }
-	        if(Arrays.asList(ACTIVITY_TYPE_ACTIVITY).contains(type)) {
-	        	activityType = "activity";
-	        	activityTypeSet = true; 
-	        	return getActivity(intent, session);
-	        }
-	        
-        } else {
-        	// Kein bodypart angegeben, nachfragen
-        	session.setAttribute("activityTypeSet", false);
-        	//activitybodypartSet = false;
-        	return SpeechletResponse.newAskResponse(getPlainTextOutputSpeech(askForType), getReprompt(getPlainTextOutputSpeech(askForTypeRe)));
-        }
-	        
-        
-		return null;
-    }*/
-    
     // Checks if a bodypart (for the exercise) was provided, if not, asks for it
     private SpeechletResponse getBodypart(Intent intent, Session session) {
     	Slot bodypartSlot = intent.getSlot("bodypart");
@@ -855,9 +750,7 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
 		return null;
     }
     
-    
-    
-    
+    // Fetches an entry from the db specified by the intent
     private SpeechletResponse fetchFromDb(String additionalInfo, String activityType, String activityLocation, String activityExertion, String bodypart) {
     	// Get game from DB according to set parameters
         String activity = "Schach spielen";
@@ -883,21 +776,21 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         	random = new Random().nextInt(gameOutsideExhaustingDb.length);
         	activity = gameOutsideExhaustingDb[random];
         	break; 
-        case "activityInsideRelaxedDb":
-        	random = new Random().nextInt(activityInsideRelaxedDb.length);
-        	activity = activityInsideRelaxedDb[random];
+        case "occupationInsideRelaxedDb":
+        	random = new Random().nextInt(occupationInsideRelaxedDb.length);
+        	activity = occupationInsideRelaxedDb[random];
         	break;
-        case "activityInsideExhaustingDb":
-        	random = new Random().nextInt(activityInsideExhaustingDb.length);
-        	activity = activityInsideExhaustingDb[random];
+        case "occupationInsideExhaustingDb":
+        	random = new Random().nextInt(occupationInsideExhaustingDb.length);
+        	activity = occupationInsideExhaustingDb[random];
         	break;
-        case "activityOutsideRelaxedDb":
-        	random = new Random().nextInt(activityOutsideRelaxedDb.length);
-        	activity = activityOutsideRelaxedDb[random];
+        case "occupationOutsideRelaxedDb":
+        	random = new Random().nextInt(occupationOutsideRelaxedDb.length);
+        	activity = occupationOutsideRelaxedDb[random];
         	break; 
-        case "activityOutsideExhaustingDb":
-        	random = new Random().nextInt(activityOutsideExhaustingDb.length);
-        	activity = activityOutsideExhaustingDb[random];
+        case "occupationOutsideExhaustingDb":
+        	random = new Random().nextInt(occupationOutsideExhaustingDb.length);
+        	activity = occupationOutsideExhaustingDb[random];
         	break;
         case "exerciseInsideExhaustingDb":
         	random = new Random().nextInt(exerciseInsideExhaustingDb.length);
@@ -925,8 +818,6 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     }
     
 
-    
-    
     
     
     
@@ -1006,6 +897,10 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
 		}
     }
     
+    
+    
+    
+    
     ////////// TEST FUNCTIONS /////////////////////////////////////////////////////////////////////////////////////////
     
     // Repeats a number and a metric
@@ -1080,6 +975,75 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         return SpeechletResponse.newTellResponse(speech, card);
     }
 
+    private void dbTest() {
+    	//CreateTableRequest create = new CreateTableRequest("stud11test", keySchema)
+    	
+    	//dbclient.createTable();
+    	
+    	DynamoDBMapper mapper = new DynamoDBMapper(dbclient);
+    	//Map<String, AttributeValue> key;
+    	//key = key
+		//dbclient.getItem("exEinsGames", key);
+
+    	//AmazonDynamoDBClient dbclient = new AmazonDynamoDBClient(); 
+    	
+    	AmazonDynamoDBClient dbclient = new AmazonDynamoDBClient();
+    	DynamoDB db = new DynamoDB (dbclient);
+    	
+    	Table table = db.getTable("exEinsExercises");
+    	
+    	try {
+    		TableDescription desc = table.waitForActiveOrDelete();
+    		if (desc != null) {
+	            log.info("Skip creating table which already exists and ready for use: " + desc);
+	            return;
+    		}
+    	} catch (InterruptedException e) {
+    		log.info("interrupted");
+    	}
+    	
+        
+        // Table doesn't exist.  Let's create it.
+        CreateTableRequest req = new CreateTableRequest().withTableName("exEinsExercises");
+        
+        table = db.createTable(req);
+        // Wait for the table to become active 
+        try {
+        	TableDescription desc = table.waitForActiveOrDelete();
+        } catch (InterruptedException e) {
+        	log.info("interrupted");
+        }
+        
+        log.info("Table is ready for use! " + desc);
+    	
+    	
+            /*DynamoDB dynamoDB = new DynamoDB(dbclient);
+
+            String tableName = "Movies";
+
+            try {
+                System.out.println("Attempting to create table; please wait...");
+                Table table = dynamoDB.createTable(tableName,
+                    Arrays.asList(new KeySchemaElement("year", KeyType.HASH), // Partition
+                                                                              // key
+                        new KeySchemaElement("title", KeyType.RANGE)), // Sort key
+                    Arrays.asList(new AttributeDefinition("year", ScalarAttributeType.N),
+                        new AttributeDefinition("title", ScalarAttributeType.S)),
+                    new ProvisionedThroughput(10L, 10L));
+                table.waitForActive();
+                System.out.println("Success.  Table status: " + table.getDescription().getTableStatus());
+
+            }
+            catch (Exception e) {
+                System.err.println("Unable to create table: ");
+                System.err.println(e.getMessage());
+            }*/
+    }
+    
+    
+    
+    
+    
     //////////BUILT_IN FUNCTIONS /////////////////////////////////////////////////////////////////////////////////////////
     
     // Returns response for the help intent.
@@ -1091,9 +1055,6 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     }
 
     // Creates a card object.
-    // @param title title of the card
-    // @param content body of the card
-    // @return SimpleCard the display card to be sent along with the voice response.
     private SimpleCard getSimpleCard(String title, String content) {
         SimpleCard card = new SimpleCard();
         card.setTitle(title);
@@ -1102,7 +1063,12 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         return card;
     }
     
+    
+    
+    
+    
     ////////// HELPER FUNCTIONS /////////////////////////////////////////////////////////////////////////////////////////
+    
     /**
      * Helper method for retrieving an OutputSpeech object when given a string of TTS.
      * @param speechText the text that should be spoken out to the user.
