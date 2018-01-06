@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
@@ -32,8 +33,11 @@ import com.amazon.speech.ui.SimpleCard;
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
+import com.amazonaws.client.builder.AwsClientBuilder;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 import com.amazon.speech.ui.OutputSpeech;
 
@@ -143,8 +147,8 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     private boolean goodWeather = true;
     
     // database and storage data
-    private AmazonDynamoDBClient dbclient;
-    static AmazonDynamoDB dynamoDB;
+    //private AmazonDynamoDBClient dbclient;
+    //static AmazonDynamoDB dynamoDb;
     private Session session; 
     
     // Array mit Fakten
@@ -338,11 +342,14 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     }
 
     public void onSessionStarted(SpeechletRequestEnvelope<SessionStartedRequest> requestEnvelope) {
-        log.info("onSessionStarted requestId={}, sessionId={}", requestEnvelope.getRequest().getRequestId(), requestEnvelope.getSession().getSessionId());
         
-        
-        initializeComponents(requestEnvelope);
+        requestId = requestEnvelope.getRequest().getRequestId();
+	    sessionId = requestEnvelope.getSession().getSessionId();
+	    //goodWeather = getWeather(); 
         dbTest(); 
+        
+        
+        log.info("onSessionStarted requestId={}, sessionId={}, goodWeather()", requestId, sessionId, goodWeather);
     }
     
     public void onSessionEnded(SpeechletRequestEnvelope<SessionEndedRequest> requestEnvelope) {
@@ -447,12 +454,6 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
 	private SpeechletResponse firstSetup() {
 		return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech("Platzhalter"));
 	}
-	
-	private void initializeComponents(SpeechletRequestEnvelope<SessionStartedRequest> requestEnvelope) {
-	    	requestId = requestEnvelope.getRequest().getRequestId();
-	        sessionId = requestEnvelope.getSession().getSessionId();
-	        //goodWeather = getWeather(); 
-	    }
 	
 	// Change or set name for the first time
 	private SpeechletResponse setName(Intent intent) {
@@ -980,41 +981,95 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     	
     	//dbclient.createTable();
     	
-    	DynamoDBMapper mapper = new DynamoDBMapper(dbclient);
+    	
     	//Map<String, AttributeValue> key;
     	//key = key
 		//dbclient.getItem("exEinsGames", key);
 
     	//AmazonDynamoDBClient dbclient = new AmazonDynamoDBClient(); 
     	
-    	AmazonDynamoDBClient dbclient = new AmazonDynamoDBClient();
-    	DynamoDB db = new DynamoDB (dbclient);
+    	DynamoDB dynamoDb;
+        String DYNAMODB_TABLE_NAME = "Person";
+        //Regions REGION = Regions.US_WEST_2;
     	
-    	Table table = db.getTable("exEinsExercises");
+    	AmazonDynamoDBClient client = new AmazonDynamoDBClient();
+        //client.setRegion(Region.getRegion(REGION));
+        dynamoDb = new DynamoDB(client);
     	
-    	try {
-    		TableDescription desc = table.waitForActiveOrDelete();
-    		if (desc != null) {
-	            log.info("Skip creating table which already exists and ready for use: " + desc);
-	            return;
-    		}
-    	} catch (InterruptedException e) {
-    		log.info("interrupted");
-    	}
-    	
+        List<KeySchemaElement> keySchema = new ArrayList<>();
+        KeySchemaElement element1 = new KeySchemaElement("name", "String");
+        KeySchemaElement element2 = new KeySchemaElement("hobby", "String");
         
-        // Table doesn't exist.  Let's create it.
-        CreateTableRequest req = new CreateTableRequest().withTableName("exEinsExercises");
         
-        table = db.createTable(req);
-        // Wait for the table to become active 
+        
+        keySchema.add(element1);
+        keySchema.add(element2);
+        
+        
+        CreateTableRequest req = new CreateTableRequest("mm_testTable", keySchema);
+        
+        //dynamoDb.createTable(req);
+        
+        log.info("DB CREATED");
+    	
+        String dbEnpointNorthVirginia = "dynamodb.us-east-1.amazonaws.com";
+        Table table = dynamoDb.getTable("exEinsGames");
+        //table.putItem(item);
+        
+        log.info("GOT TABLE");
+        
+        Item item = new Item();
+        item.withString("name", "spazieren gehen");
+        
+        //table.putItem(item);
+        
+        //log.info("PUT STUFF IN TABLE");
+        
+        
+        
+    	/*ProfileCredentialsProvider credentialsProvider = new ProfileCredentialsProvider();
+    	
         try {
-        	TableDescription desc = table.waitForActiveOrDelete();
-        } catch (InterruptedException e) {
-        	log.info("interrupted");
+            credentialsProvider.getCredentials();
+        } catch (Exception e) {
+            throw new AmazonClientException(
+                    "Cannot load the credentials from the credential profiles file. " +
+                    "Please make sure that your credentials file is at the correct " +
+                    "location (C:\\Users\\Macel\\.aws\\credentials), and is in valid format.",
+                    e);
         }
         
-        log.info("Table is ready for use! " + desc);
+        credentialsProvider.
+        
+        db = new AmazonDynamoDBClient(credentialsProvider);
+    	
+        AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard()
+                .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration("http://localhost:8000", "us-west-2"))
+                .build();
+        
+        DynamoDB dynamoDB = new DynamoDB(client);
+
+        String tableName = "Movies";
+
+        try {
+            System.out.println("Attempting to create table; please wait...");
+            Table table = dynamoDB.createTable(tableName,
+                Arrays.asList(new KeySchemaElement("year", KeyType.HASH), // Partition
+                                                                          // key
+                    new KeySchemaElement("title", KeyType.RANGE)), // Sort key
+                Arrays.asList(new AttributeDefinition("year", ScalarAttributeType.N),
+                    new AttributeDefinition("title", ScalarAttributeType.S)),
+                new ProvisionedThroughput(10L, 10L));
+            table.waitForActive();
+            System.out.println("Success.  Table status: " + table.getDescription().getTableStatus());
+
+        }
+        catch (Exception e) {
+            System.err.println("Unable to create table: ");
+            System.err.println(e.getMessage());
+        }*/
+    	
+        //log.info("Table is ready for use! " + desc);
     	
     	
             /*DynamoDB dynamoDB = new DynamoDB(dbclient);
