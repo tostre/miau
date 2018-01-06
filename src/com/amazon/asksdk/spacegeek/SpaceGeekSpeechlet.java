@@ -67,34 +67,38 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     
     
     
-    private String onLaunchMessage = "Hallo, wie kann ich helfen?";
-    private String number = "";
-    private String metric = "";
-    private String metricAdj = "";
+   
+    
     
     
     
     
     // Speech related variables
-    String speechText;
-    String helpText = "Ich kann verschiedene Aktivitäten, Spiele und Übungen, drinnen oder draußen, vorschlagen";
-    String taskDescription = "Hallo, ich kann Empfehlungen für eine Tagesaktivität geben";
-    String askForActivityType = "Welche Art von Tätigkeit darf ich vorschlagen? Ich kann Ihnen Spiele, Übungen oder allgemeine Aktivitäten empfehlen";
-    String askForGameLocation = "Möchten Sie drinnen oder draußen spielen?"; 
-    String askForGameLocationReprompt = "Ich habe nichts verstanden. Darf ich Ihnen ein Spiel für drinnen oder draußen vorschlagen?"; 
-    String askForGameExertion = "Möchten Sie etwas entspannendes spielen oder darf es leicht anstrengend sein?"; 
-    String askForGameExertionReprompt = "Ich habe nichts verstanden. Möchten Sie etwas entspannendes oder anstrengendes spielen?"; 
-    
-    String askForLocation = "Möchten Sie drinnen bleiben oder rausgehen?";
-    String askForLocationRe = "Ich konnte nichts verstehen. Möchten Sie heute drinnen bleiben oder rausgehen?";
-    String askForExertion = "Möchten Sie etwas entspanntes oder aktives unternehmen?";
-    String askForExertionRe = "Ich konnte nichts verstehen. Möchten Sie heute lieber etwas entspanntes oder aktives unternehmen?";
-    String askForBodypart = "Welchen Körperteil möchten Sie traineren?";
-    String askForBodypartRe = "Ich konnte nichts verstehen. Ich kann ihnen Übungen für die Arme, Beine, Schultern, den Rücken oder Bauch und die Brust empfehlen. Welchen Körerteil möchten Sie traineren? ";
-    String askForType = "Welche Art Tätigkeit soll ich Ihnen vorschlagen? Ein Spiel, eine Übung oder eine allgemeine Beschäftigung? ";
-    String askForTypeRe = "Ich konnte nichts verstehen. Ich kann Ihnen Spiele, Übungen oder allgemeine Beschäftigungen vorschlagen. Was möchten Sie heute machen?";
-    
+    String cancelText = "In Ordnung, ich vergesse was bisher gesagt wurde. Wir können nun von Neuem beginnen ";
+    String goodbyeText = "Bis zum nächsten Mal ";
     String badWeatherInfo = "Da das Wetter heute nicht gut werden soll, empfehle ich drinnen zu bleiben. ";
+    String askRe = "Es tut mir leid, ich konnte nichts verstehen ";
+    String greetingText = "";
+    
+    String helpText = "";
+    String helpTextF = "Ich kann verschiedene Aktivitäten, Spiele und Übungen, drinnen oder draußen, vorschlagen. Fragen Sie mich einfach nach einem Spiel, einer Übung oder einer Beschäftigung. Alles Weitere klären wir darauf gemeinsam ";
+    String helpTextI = "Ich kann verschiedene Aktivitäten, Spiele und Übungen, drinnen oder draußen, vorschlagen. Frag mich einfach nach einem Spiel, einer Übung oder einer Beschäftigung. Alles Weitere klären wir darauf gemeinsam ";
+    
+    String errorText = "";
+    String errorTextF = "Es tut mir leid, etwas ist schief gegangen. Fangen Sie bitte noch einmal von vorne an ";
+    String errorTextI = "Es tut mir leid, etwas ist schief gegangen. Fang bitte noch einmal von vorne an ";
+    
+    String askForLocation = "";
+    String askForLocationF = "Möchten Sie heute drinnen bleiben oder rausgehen? ";
+    String askForLocationI = "Möchtest Du heute drinnen bleiben oder rausgehen? ";
+    //
+    String askForExertion = "";
+    String askForExertionF = "Möchten Sie etwas entspannendes oder aktives unternehmen? ";
+    String askForExertionI = "Möchtest Du etwas entspannendes oder aktives unternehmen? ";
+    //
+    String askForBodypart = "";
+    String askForBodypartF = "Welchen Körperteil möchten Sie traineren? ";
+    String askForBodypartI = "Welchen Körperteil möchtest Du traineren? ";
     
     String[] proposals = new String[] {
     		"Wie wäre es hiermit? ", 
@@ -102,14 +106,14 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     		"Das hier klingt nach einer guten Beschäftigung: "
     };
     private static final String[] GREETINGS_FORMAL = new String[] {
-    		"Hallo, wie kann ich Ihnen helfen",
-    		"Was kann ich für Sie tun",
-    		"Kann ich Ihnen eine Aktivität für heute empfehlen",
+    		"Hallo, wie kann ich Ihnen helfen ",
+    		"Was kann ich für Sie tun ",
+    		"Kann ich Ihnen eine Aktivität für heute empfehlen ",
     };
     private static final String[] GREETINGS_INFORMAL = new String[] {
-    		"Hallo, wie kann ich Dir helfen",
-    		"Was kann ich für Dich tun",
-    		"Kann ich Dir eine Aktivität für heute empfehlen",
+    		"Hallo, wie kann ich Dir helfen ",
+    		"Was kann ich für Dich tun ",
+    		"Kann ich Dir eine Aktivität für heute empfehlen ",
     };
     
     // Session data
@@ -117,8 +121,8 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     String sessionId;
     
     // user data
-    private String userNameTell = "Maria";
-    private String userNameAsk = "Maria?";
+    private String userNameTell = "Maria ";
+    private String userNameAsk = "Maria? ";
     private boolean formalSpeech = true; 
     private boolean firstMeeting = true; 
     
@@ -326,30 +330,19 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     
     public SpeechletResponse onLaunch(SpeechletRequestEnvelope<LaunchRequest> requestEnvelope) {
         session = requestEnvelope.getSession();
-    	
-    	if(formalSpeech) {
-        	speechText = GREETINGS_FORMAL[(int) Math.floor(Math.random() * GREETINGS_FORMAL.length)];
-        } else {
-        	speechText = GREETINGS_INFORMAL[(int) Math.floor(Math.random() * GREETINGS_INFORMAL.length)];
-        }
-    	
-    	// Create the Simple card content.
-        SimpleCard card = getSimpleCard("exEins", taskDescription);
-        // Create the plain text output.
-        PlainTextOutputSpeech speech = getPlainTextOutputSpeech(speechText);
-
-        return SpeechletResponse.newTellResponse(speech, card);
+    	String output; 
+    	//goodWeather = getWeather(); 
+        initDb(); 
+        initSpeech(); 
+        
+        return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech(greetingText));
     }
 
     public void onSessionStarted(SpeechletRequestEnvelope<SessionStartedRequest> requestEnvelope) {
-        
         requestId = requestEnvelope.getRequest().getRequestId();
 	    sessionId = requestEnvelope.getSession().getSessionId();
-	    //goodWeather = getWeather(); 
-        dbTest(); 
         
-        
-        log.info("onSessionStarted requestId={}, sessionId={}, goodWeather()", requestId, sessionId, goodWeather);
+        log.info("onSessionStarted requestId={}, sessionId={}", requestId, sessionId);
     }
     
     public void onSessionEnded(SpeechletRequestEnvelope<SessionEndedRequest> requestEnvelope) {
@@ -370,6 +363,7 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         String intentName = (intent != null) ? intent.getName() : null;
         PlainTextOutputSpeech outputSpeech;
         
+        // This is the start of a user request
         if(!activityTypeSet) {
         	switch(intentName) {
             case "GetGameIntent":
@@ -378,26 +372,17 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
             	return getExercise(intent, session);
         	case "GetOccupationIntent":
         		return getOccupation(intent, session);
-            //case "GetActivityIntent":
-        		//return getActivity(intent, session);
-            //case "SetLocationIntent":
-            	//getLocation(intent, session);
-            //case "SetExertionIntent":
-            	//getExertion(intent, session);
-            // Built-in intents
             case "AMAZON.HelpIntent":
         		return getHelpResponse();
         	case "AMAZON.StopIntent":
-        		outputSpeech = new PlainTextOutputSpeech();
-                outputSpeech.setText("Tschüss");
-                return SpeechletResponse.newTellResponse(outputSpeech);
+                return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech(goodbyeText));
         	case "AMAZON.CancelIntent": 
-        		outputSpeech = new PlainTextOutputSpeech();
-                outputSpeech.setText("Tschüss");
-                return SpeechletResponse.newTellResponse(outputSpeech);
+                return cancelRequest();
             default: 
-            	return getAskResponse("Gino", "Das habe ich leider nicht verstanden. Sie können mich nach einem Spiel oder einer Übung fragen");
+            	String output = "Das habe ich leider nicht verstanden. " + helpText;
+            	return SpeechletResponse.newAskResponse(getPlainTextOutputSpeech(output), getReprompt(getPlainTextOutputSpeech(output)));
         	}
+        // Activity type already set, meaning this intent is for a follow-up question by alexa
         } else {
         	switch(activityType) {
         	case "game":
@@ -407,42 +392,9 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         	case "activity": 
         		return getOccupation(intent, session);
         	default: 
-        		return getAskResponse("Gino", "Aktivitätstyp: " + activityType + "Typ gesetzt. Das habe ich leider nicht verstanden.");
+        		return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech(errorText));
         	}
         }
-        
-        /*
-        switch(intentName) {
-        case "GetStatusIntent": 
-        	
-        case "GetNewFactIntent":
-        	return getNewFactResponse(intent);
-        case "RepeatIntent":
-        	return repeat(intent);
-        case "SetFormalSpeechIntent":
-        	return setFormalSpeech(intent); 
-        case "SetNameIntent":
-        	return setName(intent);
-        case "GetExerciseIntent":
-        	return getExercise(intent);
-        case "GetGameIntent":
-        	return getGame(intent);
-        case "SetLocationIntent":
-        	//return getLocation(intent);
-        	getLocation(intent, "");
-    	case "AMAZON.HelpIntent":
-    		return getHelpResponse();
-    	case "AMAZON.StopIntent":
-    		outputSpeech = new PlainTextOutputSpeech();
-            outputSpeech.setText("Tschüss");
-            return SpeechletResponse.newTellResponse(outputSpeech);
-    	case "AMAZON.CancelIntent": 
-    		outputSpeech = new PlainTextOutputSpeech();
-            outputSpeech.setText("Tschüss");
-            return SpeechletResponse.newTellResponse(outputSpeech);
-        default: 
-        	return getAskResponse("Gino", "Das habe ich leider nicht verstanden.");
-        }*/
     }
     
     
@@ -451,7 +403,9 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     
 	////////// SETUP AND USER DATA METHODS /////////////////////////////////////////////////////////////////////////////////////////
 	    
+    // Called when the user starts the skill for the first time
 	private SpeechletResponse firstSetup() {
+		//Ask for name, Siezen/Duzen, excluded Körperteile
 		return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech("Platzhalter"));
 	}
 	
@@ -677,7 +631,7 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
 	        	// Kein Ort angegeben, nachfragen
 	        	//activityLocationSet = false;
 	        	session.setAttribute("activityLocationSet", false);
-	        	return SpeechletResponse.newAskResponse(getPlainTextOutputSpeech(askForLocation), getReprompt(getPlainTextOutputSpeech(askForLocationRe)));
+	        	return SpeechletResponse.newAskResponse(getPlainTextOutputSpeech(askForLocation), getReprompt(getPlainTextOutputSpeech(askRe + askForLocation)));
 	        }
 	        
         } else {
@@ -718,7 +672,7 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         	// Kein Exertion angegeben, nachfragen
         	session.setAttribute("activityExertionSet", false);
         	//activityExertionSet = false;
-        	return SpeechletResponse.newAskResponse(getPlainTextOutputSpeech(askForExertion), getReprompt(getPlainTextOutputSpeech(askForExertionRe)));
+        	return SpeechletResponse.newAskResponse(getPlainTextOutputSpeech(askForExertion), getReprompt(getPlainTextOutputSpeech(askRe + askForExertion)));
         }
 	        
         
@@ -744,7 +698,7 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         	// Kein bodypart angegeben, nachfragen
         	session.setAttribute("activityBodypartSet", false);
         	//activitybodypartSet = false;
-        	return SpeechletResponse.newAskResponse(getPlainTextOutputSpeech(askForBodypart), getReprompt(getPlainTextOutputSpeech(askForBodypartRe)));
+        	return SpeechletResponse.newAskResponse(getPlainTextOutputSpeech(askForBodypart), getReprompt(getPlainTextOutputSpeech(askRe + askForBodypart)));
         }
 	        
         
@@ -898,6 +852,25 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
 		}
     }
     
+    // Overwrites speech variables as to match the user preference regarding formal and informal speech
+    private void initSpeech() {
+    	if(formalSpeech) {
+    		helpText = helpTextF; 
+    		errorText = errorTextF;
+    		askForLocation = askForLocationF; 
+    		askForExertion = askForExertionF; 
+    		askForBodypart = askForBodypartF;
+    		greetingText = GREETINGS_FORMAL[(int) Math.floor(Math.random() * GREETINGS_FORMAL.length)];
+    	} else {
+    		helpText = helpTextI; 
+    		errorText = errorTextI;
+    		askForLocation = askForLocationI; 
+    		askForExertion = askForExertionI; 
+    		askForBodypart = askForBodypartI;
+    		greetingText = GREETINGS_INFORMAL[(int) Math.floor(Math.random() * GREETINGS_INFORMAL.length)];
+    	}
+    }
+    
     
     
     
@@ -906,6 +879,10 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     
     // Repeats a number and a metric
     private SpeechletResponse repeat(final Intent intent) {
+    	String number = "";
+        String metric = "";
+        String metricAdj = "";
+    	
     	// Get the slots from the intent.
         Map<String, Slot> slots = intent.getSlots();
         Slot numberSlot = slots.get("number");
@@ -976,7 +953,7 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         return SpeechletResponse.newTellResponse(speech, card);
     }
 
-    private void dbTest() {
+    private void initDb() {
     	//CreateTableRequest create = new CreateTableRequest("stud11test", keySchema)
     	
     	//dbclient.createTable();
@@ -1103,10 +1080,29 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     
     // Returns response for the help intent.
     private SpeechletResponse getHelpResponse() {
-        String speechText =
-                "You can ask Space Geek tell me a space fact, or, you can say exit. What can I "
-                        + "help you with?";
-        return getAskResponse("SpaceGeek", speechText);
+        
+        return getAskResponse("SpaceGeek", helpText);
+    }
+    
+    // Cancels the user request 
+    private SpeechletResponse cancelRequest() {
+    	
+    	// Activity data
+        activityType = null;
+        activityExertion = null; 
+        activityLocation = null; 
+        activityBodyPart = null;
+        activityWithFriends = false;
+        // Actity data set 
+        activityTypeSet = false; 
+        activityExertionSet = false; 
+        activityLocationSet = false; 
+        activityBodypartSet = false;
+        activityWithFriendsSet = false; 
+        activityExcludeBodypartSet = false; 
+        activityIncludeBodypartSet = false; 
+
+    	return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech(cancelText));
     }
 
     // Creates a card object.
