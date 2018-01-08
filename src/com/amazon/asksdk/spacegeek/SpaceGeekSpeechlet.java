@@ -79,6 +79,7 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     String badWeatherInfo = "Da das Wetter heute nicht gut werden soll, empfehle ich drinnen zu bleiben. ";
     String askRe = "Es tut mir leid, ich konnte nichts verstehen ";
     String greetingText = "";
+    String introductionText = "Hallo, freut mich Sie kennenzulernen. Ich kann Ihnen verschiedene Spiele, Übungen oder Beschäftigungen vorschlagen. Zuerst muss ich Ihnen aber ein paar Fragen stellen, um Sie besser kennenzulernen. ";
     
     String helpText = "";
     String helpTextF = "Ich kann verschiedene Aktivitäten, Spiele und Übungen, drinnen oder draußen, vorschlagen. Fragen Sie mich einfach nach einem Spiel, einer Übung oder einer Beschäftigung. Alles Weitere klären wir darauf gemeinsam ";
@@ -91,14 +92,24 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     String askForLocation = "";
     String askForLocationF = "Möchten Sie heute drinnen bleiben oder rausgehen? ";
     String askForLocationI = "Möchtest Du heute drinnen bleiben oder rausgehen? ";
-    //
+    
     String askForExertion = "";
     String askForExertionF = "Möchten Sie etwas entspannendes oder aktives unternehmen? ";
     String askForExertionI = "Möchtest Du etwas entspannendes oder aktives unternehmen? ";
-    //
+    
     String askForBodypart = "";
     String askForBodypartF = "Welchen Körperteil möchten Sie traineren? ";
     String askForBodypartI = "Welchen Körperteil möchtest Du traineren? ";
+    
+    String askForName = "";
+    String askForNameF = "Wie darf ich Sie nennen? ";
+    String askForNameI = "Wie darf ich Dich nennen? ";
+    
+    String askForSpeechStyle = "Möchten Sie gesiezt oder geduzt werden? ";
+    
+    String confirmSpeechStyle = "";
+    String confirmSpeechStyleF = "In Ordnung, ich werde Sie ab jetzt Siezen ";
+    String confirmSpeechStyleI = "In Ordnung, ich werde Dich ab jetzt Duzen ";
     
     String[] proposals = new String[] {
     		"Wie wäre es hiermit? ", 
@@ -123,8 +134,11 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     // user data
     private String userNameTell = "Maria ";
     private String userNameAsk = "Maria? ";
+    private boolean userNameSet = false; 
     private boolean formalSpeech = true; 
-    private boolean firstMeeting = true; 
+    private boolean speechStyleSet = false; 
+    private boolean excludedBodypartsSet = false; 
+    private boolean firstSetupComplete = true; 
     
     // Activity data
     private String activityType = "leer"; // exercise, game, activity
@@ -151,8 +165,6 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     private boolean goodWeather = true;
     
     // database and storage data
-    //private AmazonDynamoDBClient dbclient;
-    //static AmazonDynamoDB dynamoDb;
     private Session session; 
     
     // Array mit Fakten
@@ -275,6 +287,16 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     		"normale beschäftigung",
     		"normale tätigkeit"
     };
+    private static final String[] SPEECHSTYLE_FORMAL = new String[] {
+    		"siezen",
+    		"gesiezt",
+    		"sie"
+    };
+    private static final String[] SPEECHSTYLE_INFORMAL = new String[] {
+    		"duzen",
+    		"geduzt",
+    		"du"
+    };
     
     // DB emulator (game)
     String[] gameInsideRelaxedDb = new String[] {
@@ -328,21 +350,28 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     
     ////////// LIFECYCLE METHODS /////////////////////////////////////////////////////////////////////////////////////////
     
+	// Called when application is launched from keyword ("Starte Fakten")
     public SpeechletResponse onLaunch(SpeechletRequestEnvelope<LaunchRequest> requestEnvelope) {
         session = requestEnvelope.getSession();
-    	String output; 
-    	//goodWeather = getWeather(); 
-        initDb(); 
-        initSpeech(); 
         
-        return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech(greetingText));
+        if(firstSetupComplete) {
+        	//goodWeather = getWeather(); 
+	        initDb(); 
+	        initSpeech();	
+	        return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech(greetingText));
+        } else {
+        	return firstSetup();
+        }
+    	
+         
+        
     }
 
+    // Ka, wann das gestartet wird 
     public void onSessionStarted(SpeechletRequestEnvelope<SessionStartedRequest> requestEnvelope) {
         requestId = requestEnvelope.getRequest().getRequestId();
 	    sessionId = requestEnvelope.getSession().getSessionId();
-        
-        log.info("onSessionStarted requestId={}, sessionId={}", requestId, sessionId);
+	    log.info("onSessionStarted requestId={}, sessionId={}", requestId, sessionId);
     }
     
     public void onSessionEnded(SpeechletRequestEnvelope<SessionEndedRequest> requestEnvelope) {
@@ -351,6 +380,7 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         // any cleanup logic goes here
     }
     
+    // TODO: Checken ob setup komplett ist 
     public SpeechletResponse onIntent(SpeechletRequestEnvelope<IntentRequest> requestEnvelope) {
         IntentRequest request = requestEnvelope.getRequest();
         session = requestEnvelope.getSession();
@@ -403,48 +433,233 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     
 	////////// SETUP AND USER DATA METHODS /////////////////////////////////////////////////////////////////////////////////////////
 	    
+    // Initializes db access, handles access requests
+	private void initDb() {
+    	//CreateTableRequest create = new CreateTableRequest("stud11test", keySchema)
+    	
+    	//dbclient.createTable();
+    	
+    	
+    	//Map<String, AttributeValue> key;
+    	//key = key
+		//dbclient.getItem("exEinsGames", key);
+    	//AmazonDynamoDBClient dbclient = new AmazonDynamoDBClient(); 
+    	
+    	DynamoDB dynamoDb;
+        String DYNAMODB_TABLE_NAME = "Person";
+        //Regions REGION = Regions.US_WEST_2;
+    	
+    	AmazonDynamoDBClient client = new AmazonDynamoDBClient();
+        //client.setRegion(Region.getRegion(REGION));
+        dynamoDb = new DynamoDB(client);
+    	
+        List<KeySchemaElement> keySchema = new ArrayList<>();
+        KeySchemaElement element1 = new KeySchemaElement("name", "String");
+        KeySchemaElement element2 = new KeySchemaElement("hobby", "String");
+        
+        
+        keySchema.add(element1);
+        keySchema.add(element2);
+        
+        
+        CreateTableRequest req = new CreateTableRequest("mm_testTable", keySchema);
+        
+        //dynamoDb.createTable(req);
+        
+        log.info("DB CREATED");
+    	
+        String dbEnpointNorthVirginia = "dynamodb.us-east-1.amazonaws.com";
+        Table table = dynamoDb.getTable("exEinsGames");
+        //table.putItem(item);
+        
+        log.info("GOT TABLE");
+        
+        Item item = new Item();
+        item.withString("name", "spazieren gehen");
+        
+        //table.putItem(item);
+        
+        //log.info("PUT STUFF IN TABLE");
+        
+        
+        
+    	/*ProfileCredentialsProvider credentialsProvider = new ProfileCredentialsProvider();
+    	
+        try {
+            credentialsProvider.getCredentials();
+        } catch (Exception e) {
+            throw new AmazonClientException(
+                    "Cannot load the credentials from the credential profiles file. " +
+                    "Please make sure that your credentials file is at the correct " +
+                    "location (C:\\Users\\Macel\\.aws\\credentials), and is in valid format.",
+                    e);
+        }
+        
+        credentialsProvider.
+        
+        db = new AmazonDynamoDBClient(credentialsProvider);
+    	
+        AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard()
+                .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration("http://localhost:8000", "us-west-2"))
+                .build();
+        
+        DynamoDB dynamoDB = new DynamoDB(client);
+
+        String tableName = "Movies";
+
+        try {
+            System.out.println("Attempting to create table; please wait...");
+            Table table = dynamoDB.createTable(tableName,
+                Arrays.asList(new KeySchemaElement("year", KeyType.HASH), // Partition
+                                                                          // key
+                    new KeySchemaElement("title", KeyType.RANGE)), // Sort key
+                Arrays.asList(new AttributeDefinition("year", ScalarAttributeType.N),
+                    new AttributeDefinition("title", ScalarAttributeType.S)),
+                new ProvisionedThroughput(10L, 10L));
+            table.waitForActive();
+            System.out.println("Success.  Table status: " + table.getDescription().getTableStatus());
+
+        }
+        catch (Exception e) {
+            System.err.println("Unable to create table: ");
+            System.err.println(e.getMessage());
+        }*/
+    	
+        //log.info("Table is ready for use! " + desc);
+    	
+    	
+            /*DynamoDB dynamoDB = new DynamoDB(dbclient);
+
+            String tableName = "Movies";
+
+            try {
+                System.out.println("Attempting to create table; please wait...");
+                Table table = dynamoDB.createTable(tableName,
+                    Arrays.asList(new KeySchemaElement("year", KeyType.HASH), // Partition
+                                                                              // key
+                        new KeySchemaElement("title", KeyType.RANGE)), // Sort key
+                    Arrays.asList(new AttributeDefinition("year", ScalarAttributeType.N),
+                        new AttributeDefinition("title", ScalarAttributeType.S)),
+                    new ProvisionedThroughput(10L, 10L));
+                table.waitForActive();
+                System.out.println("Success.  Table status: " + table.getDescription().getTableStatus());
+
+            }
+            catch (Exception e) {
+                System.err.println("Unable to create table: ");
+                System.err.println(e.getMessage());
+            }*/
+    }
+
+	// Overwrites speech variables as to match the user preference regarding formal and informal speech
+    private void initSpeech() {
+    	if(formalSpeech) {
+    		helpText = helpTextF; 
+    		errorText = errorTextF;
+    		askForLocation = askForLocationF; 
+    		askForExertion = askForExertionF; 
+    		askForBodypart = askForBodypartF;
+    		askForName = askForNameF;
+    		confirmSpeechStyle = confirmSpeechStyleF;
+    		greetingText = GREETINGS_FORMAL[(int) Math.floor(Math.random() * GREETINGS_FORMAL.length)];
+    	} else {
+    		helpText = helpTextI; 
+    		errorText = errorTextI;
+    		askForLocation = askForLocationI; 
+    		askForExertion = askForExertionI; 
+    		askForBodypart = askForBodypartI;
+    		askForName = askForNameI;
+    		confirmSpeechStyle = confirmSpeechStyleI;
+    		greetingText = GREETINGS_INFORMAL[(int) Math.floor(Math.random() * GREETINGS_INFORMAL.length)];
+    	}
+    }
+    
+    
+    
+    
     // Called when the user starts the skill for the first time
 	private SpeechletResponse firstSetup() {
 		//Ask for name, Siezen/Duzen, excluded Körperteile
+		
+		Intent intent = null;
+		
+		// TODO: Get all the data from the db
+		if(!userNameSet) {
+			return setUserName(intent); 
+		} else {
+			
+		}
+		
+		if(!speechStyleSet) {
+			return setSpeechStyle(intent);
+		} else {
+			
+		}
+		
+		if(!excludedBodypartsSet) {
+			
+		} else {
+			
+		}
+		
+		// TODO: In die DB schreiben
+		firstSetupComplete = true; 
+		
+		
 		return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech("Platzhalter"));
 	}
 	
-	// Change or set name for the first time
-	private SpeechletResponse setName(Intent intent) {
-		// Get the slots from the intent.
-	 Map<String, Slot> slots = intent.getSlots();
-	 String username = slots.get("username").getValue();
-	
-	 userNameTell = username + "!";
-	 userNameAsk = username + "?";
-	 
-	 if(firstMeeting) {
-	 	return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech("Nett Dich kennen zu lernen " + userNameTell));
-	 } else {
-	 	return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech("Verstanden " + userNameTell));
-	 }
+	// TODO: namen-slot aufsetzen, dann namen in variable speichern, in db schreiben. Außerdem descriptionText beim ersten FDragen nach dem Namen ausgeben
+	// Called when skill is first exectuted or user wants to change their name
+	private SpeechletResponse setUserName(Intent intent) {
+		if(intent != null) {
+    		Slot nameSlot = intent.getSlot("name");
+    	
+	    	if(nameSlot  != null && nameSlot .getValue() != null && !nameSlot .getValue().equalsIgnoreCase("")){
+	        	String name = nameSlot.getValue().toLowerCase();
+	        
+		        if(Arrays.asList(SPEECHSTYLE_FORMAL).contains(name)) {
+		        	// TODO: Write preffered speechStyle in to db
+		        	formalSpeech = true; 
+		        	return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech(confirmSpeechStyleF + userNameTell));
+		        };
+		        if(Arrays.asList(SPEECHSTYLE_INFORMAL).contains(name)) {
+		        	// TODO: Write preffered speechStyle in to db
+		        	formalSpeech = false;
+		        	return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech(confirmSpeechStyleI + userNameTell));
+		        };
+	    	} 
+    	}
+    	
+    	return SpeechletResponse.newAskResponse(getPlainTextOutputSpeech(askForSpeechStyle), getReprompt(getPlainTextOutputSpeech(askRe + askForSpeechStyle)));
 	}
 	
-	// Let's the user choose if they want to be "geduzt" or "gesiezt"
-	private SpeechletResponse setFormalSpeech(Intent intent) {
-		// Get the slots from the intent.
-	 Map<String, Slot> slots = intent.getSlots();
-	 Slot formalSpeechStyle = slots.get("formalSpeechType");
-	 
-	 String style = formalSpeechStyle.getValue();
-	 
-	 if(style.equals("siezen")) {
-	 	formalSpeech = true; 
-	 	return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech("Verstanden, ich werde Sie ab jetzt Siezen " + userNameTell));
-	 } else {
-	 	formalSpeech = false;
-	 	return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech("Verstanden, ich werden Sie ab jetzt Duzen " + userNameTell));
-	 }
-	}
-
-
-
-
+	
+    // Called when skill is first exectuted or user wants to change the speech style (formal/informal) 
+    private SpeechletResponse setSpeechStyle(Intent intent) {
+    	if(intent != null) {
+    		Slot speechStyleSlot = intent.getSlot("speechStyle");
+    	
+	    	if(speechStyleSlot != null && speechStyleSlot.getValue() != null && !speechStyleSlot.getValue().equalsIgnoreCase("")){
+	        	String speechStyle = speechStyleSlot.getValue().toLowerCase();
+	        
+		        if(Arrays.asList(SPEECHSTYLE_FORMAL).contains(speechStyle)) {
+		        	// TODO: Write preffered speechStyle in to db
+		        	formalSpeech = true; 
+		        	return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech(confirmSpeechStyleF + userNameTell));
+		        }
+		        if(Arrays.asList(SPEECHSTYLE_INFORMAL).contains(speechStyle)) {
+		        	// TODO: Write preffered speechStyle in to db
+		        	formalSpeech = false;
+		        	return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech(confirmSpeechStyleI + userNameTell));
+		        }
+	    	} 
+    	}
+    	
+    	return SpeechletResponse.newAskResponse(getPlainTextOutputSpeech(askForSpeechStyle), getReprompt(getPlainTextOutputSpeech(askRe + askForSpeechStyle)));
+    }
+    
+    
 	
 	////////// CORE FUNCTIONS /////////////////////////////////////////////////////////////////////////////////////////
     
@@ -664,7 +879,7 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
 	        	session.setAttribute("activityExertionSet", true);
 	        	session.setAttribute("activityExertion", "exhausting");
 	        	//activityExertionSet = true;
-	        	//activityExertion = "exhausting";   
+	        	//activityExertion = "exhausting";
 	       
 	        }
 	        
@@ -852,27 +1067,6 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
 		}
     }
     
-    // Overwrites speech variables as to match the user preference regarding formal and informal speech
-    private void initSpeech() {
-    	if(formalSpeech) {
-    		helpText = helpTextF; 
-    		errorText = errorTextF;
-    		askForLocation = askForLocationF; 
-    		askForExertion = askForExertionF; 
-    		askForBodypart = askForBodypartF;
-    		greetingText = GREETINGS_FORMAL[(int) Math.floor(Math.random() * GREETINGS_FORMAL.length)];
-    	} else {
-    		helpText = helpTextI; 
-    		errorText = errorTextI;
-    		askForLocation = askForLocationI; 
-    		askForExertion = askForExertionI; 
-    		askForBodypart = askForBodypartI;
-    		greetingText = GREETINGS_INFORMAL[(int) Math.floor(Math.random() * GREETINGS_INFORMAL.length)];
-    	}
-    }
-    
-    
-    
     
     
     ////////// TEST FUNCTIONS /////////////////////////////////////////////////////////////////////////////////////////
@@ -953,124 +1147,7 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         return SpeechletResponse.newTellResponse(speech, card);
     }
 
-    private void initDb() {
-    	//CreateTableRequest create = new CreateTableRequest("stud11test", keySchema)
-    	
-    	//dbclient.createTable();
-    	
-    	
-    	//Map<String, AttributeValue> key;
-    	//key = key
-		//dbclient.getItem("exEinsGames", key);
-
-    	//AmazonDynamoDBClient dbclient = new AmazonDynamoDBClient(); 
-    	
-    	DynamoDB dynamoDb;
-        String DYNAMODB_TABLE_NAME = "Person";
-        //Regions REGION = Regions.US_WEST_2;
-    	
-    	AmazonDynamoDBClient client = new AmazonDynamoDBClient();
-        //client.setRegion(Region.getRegion(REGION));
-        dynamoDb = new DynamoDB(client);
-    	
-        List<KeySchemaElement> keySchema = new ArrayList<>();
-        KeySchemaElement element1 = new KeySchemaElement("name", "String");
-        KeySchemaElement element2 = new KeySchemaElement("hobby", "String");
-        
-        
-        
-        keySchema.add(element1);
-        keySchema.add(element2);
-        
-        
-        CreateTableRequest req = new CreateTableRequest("mm_testTable", keySchema);
-        
-        //dynamoDb.createTable(req);
-        
-        log.info("DB CREATED");
-    	
-        String dbEnpointNorthVirginia = "dynamodb.us-east-1.amazonaws.com";
-        Table table = dynamoDb.getTable("exEinsGames");
-        //table.putItem(item);
-        
-        log.info("GOT TABLE");
-        
-        Item item = new Item();
-        item.withString("name", "spazieren gehen");
-        
-        //table.putItem(item);
-        
-        //log.info("PUT STUFF IN TABLE");
-        
-        
-        
-    	/*ProfileCredentialsProvider credentialsProvider = new ProfileCredentialsProvider();
-    	
-        try {
-            credentialsProvider.getCredentials();
-        } catch (Exception e) {
-            throw new AmazonClientException(
-                    "Cannot load the credentials from the credential profiles file. " +
-                    "Please make sure that your credentials file is at the correct " +
-                    "location (C:\\Users\\Macel\\.aws\\credentials), and is in valid format.",
-                    e);
-        }
-        
-        credentialsProvider.
-        
-        db = new AmazonDynamoDBClient(credentialsProvider);
-    	
-        AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard()
-                .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration("http://localhost:8000", "us-west-2"))
-                .build();
-        
-        DynamoDB dynamoDB = new DynamoDB(client);
-
-        String tableName = "Movies";
-
-        try {
-            System.out.println("Attempting to create table; please wait...");
-            Table table = dynamoDB.createTable(tableName,
-                Arrays.asList(new KeySchemaElement("year", KeyType.HASH), // Partition
-                                                                          // key
-                    new KeySchemaElement("title", KeyType.RANGE)), // Sort key
-                Arrays.asList(new AttributeDefinition("year", ScalarAttributeType.N),
-                    new AttributeDefinition("title", ScalarAttributeType.S)),
-                new ProvisionedThroughput(10L, 10L));
-            table.waitForActive();
-            System.out.println("Success.  Table status: " + table.getDescription().getTableStatus());
-
-        }
-        catch (Exception e) {
-            System.err.println("Unable to create table: ");
-            System.err.println(e.getMessage());
-        }*/
-    	
-        //log.info("Table is ready for use! " + desc);
-    	
-    	
-            /*DynamoDB dynamoDB = new DynamoDB(dbclient);
-
-            String tableName = "Movies";
-
-            try {
-                System.out.println("Attempting to create table; please wait...");
-                Table table = dynamoDB.createTable(tableName,
-                    Arrays.asList(new KeySchemaElement("year", KeyType.HASH), // Partition
-                                                                              // key
-                        new KeySchemaElement("title", KeyType.RANGE)), // Sort key
-                    Arrays.asList(new AttributeDefinition("year", ScalarAttributeType.N),
-                        new AttributeDefinition("title", ScalarAttributeType.S)),
-                    new ProvisionedThroughput(10L, 10L));
-                table.waitForActive();
-                System.out.println("Success.  Table status: " + table.getDescription().getTableStatus());
-
-            }
-            catch (Exception e) {
-                System.err.println("Unable to create table: ");
-                System.err.println(e.getMessage());
-            }*/
-    }
+    
     
     
     
