@@ -502,7 +502,7 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     	// Gets a users name
 		String userName = database.getUserName(userId); 
         
-        
+        // etc. 
     
         
         
