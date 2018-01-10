@@ -1,7 +1,27 @@
-https://console.aws.amazon.com/dynamodb/home?region=us-east-1#tables:selected=exercices
+https://developer.amazon.com/edw/home.html#/skill/amzn1.ask.skill.59790ca8-93ed-42cb-b289-35ac1d2325e1/de_DE/testing
 
-http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/GettingStarted.Java.01.html
+https://console.aws.amazon.com/lambda/home?region=us-east-1#/functions/mm_exEins?tab=graph
 
-https://developer.amazon.com/de/docs/custom-skills/define-synonyms-and-ids-for-slot-type-values-entity-resolution.html
+https://console.aws.amazon.com/dynamodb/home?region=us-east-1#tables:selected=exEinsUsers
 
-https://github.com/alexa/skill-samples-java/blob/master/scorekeeper/src/com/amazon/asksdk/scorekeeper/ScoreKeeperManager.java
+http://stleary.github.io/JSON-java/index.html
+
+https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/
+
+https://github.com/alexa/skill-samples-java/tree/master/scorekeeper
+
+https://developer.amazon.com/de/blogs/alexa/post/648c46a1-b491-49bc-902d-d05ecf5c65b4/tips-on-state-management-at-three-different-levels
+
+https://www.google.de/search?ei=N9dQWpveNMHbUZ7Sp4AM&q=java+lambda+dynamodb&oq=java+lambda+dy&gs_l=psy-ab.3.0.0i19k1l3j0i22i30i19k1l3.3540.6315.0.8027.14.10.0.4.4.0.79.716.10.10.0....0...1c.1.64.psy-ab..0.14.720...0j0i131k1j0i67k1j0i22i30k1.0.YhA2p7PShhs
+
+https://docs.aws.amazon.com/de_de/amazondynamodb/latest/developerguide/JavaDocumentAPIItemCRUD.html#PutDocumentAPIJava
+
+https://www.google.de/search?q=cannot+make+static+reference+to+non+static+method&oq=cannot+make+static+reference+to++non+static+method&aqs=chrome..69i57.7139j0j7&sourceid=chrome&ie=UTF-8
+
+https://www.google.de/search?q=dynamodb+get+string&oq=dynamodb+get+string&aqs=chrome..69i57.3041j0j7&sourceid=chrome&ie=UTF-8
+
+https://stackoverflow.com/questions/9446472/amazon-dynamodb-getting-items-as-a-string
+
+https://www.google.de/search?q=dynamodb+update+item&oq=dynamodb+update+item&aqs=chrome..69i57.5433j0j7&sourceid=chrome&ie=UTF-8
+
+https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/GettingStarted.Java.03.html#GettingStarted.Java.03.03

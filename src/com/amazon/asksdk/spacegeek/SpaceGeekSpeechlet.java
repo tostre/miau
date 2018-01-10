@@ -462,123 +462,50 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     
 	////////// SETUP AND USER DATA METHODS /////////////////////////////////////////////////////////////////////////////////////////
 	    
+    private void dbTest() {
+    	
+    }
+    
     // Initializes db access, handles access requests
 	private void initDb() {
     	log.info("INITDB");
-		//CreateTableRequest create = new CreateTableRequest("stud11test", keySchema)
+		Database database = new Database(); 
+    	String tableName = "exEinsTable";
+    	String dbEnpointNorthVirginia = "dynamodb.us-east-1.amazonaws.com";
+    	String loc = "inside";
+    	String ext = "relaxed";
+    	String userId = "ihfg3j3jj5j5jh63989ao";
+    	Regions REGION = Regions.US_WEST_2;
     	
-    	//dbclient.createTable();
-    	
-    	
-    	//Map<String, AttributeValue> key;
-    	//key = key
-		//dbclient.getItem("exEinsGames", key);
-    	//AmazonDynamoDBClient dbclient = new AmazonDynamoDBClient(); 
-    	
-    	DynamoDB dynamoDb;
-        String DYNAMODB_TABLE_NAME = "Person";
-        //Regions REGION = Regions.US_WEST_2;
-    	
-    	AmazonDynamoDBClient client = new AmazonDynamoDBClient();
-        //client.setRegion(Region.getRegion(REGION));
-        dynamoDb = new DynamoDB(client);
-    	
-        List<KeySchemaElement> keySchema = new ArrayList<>();
-        KeySchemaElement element1 = new KeySchemaElement("name", "String");
-        KeySchemaElement element2 = new KeySchemaElement("hobby", "String");
+		
+		// Create new table with specified key schema
+		List<KeySchemaElement> keySchema = new ArrayList<>();
+        keySchema.add(new KeySchemaElement("id", "Number"));
+        keySchema.add(new KeySchemaElement("name", "String"));
+		database.createTable(tableName, keySchema);
+		
+		
+		
+		// Writes an item into the table 
+		List<String> excludedBodyParts = new ArrayList<String>();
+		excludedBodyParts.add("schulter");
+		excludedBodyParts.add("knie");
+		
+		Item item = new Item(); 
+		item.withNumber("id", 3);
+		item.withString("name", "Walter");
+		item.withList("excludedBodyParts", excludedBodyParts);
+		
+		database.putItem(tableName, item);
+		
+		
+    	// Gets a users name
+		String userName = database.getUserName(userId); 
         
         
-        keySchema.add(element1);
-        keySchema.add(element2);
+    
         
         
-        CreateTableRequest req = new CreateTableRequest("mm_testTable", keySchema);
-        
-        //dynamoDb.createTable(req);
-        
-        log.info("DB CREATED");
-    	
-        String dbEnpointNorthVirginia = "dynamodb.us-east-1.amazonaws.com";
-        Table table = dynamoDb.getTable("exEinsGames");
-        //table.putItem(item);
-        
-        log.info("GOT TABLE");
-        
-        Item item = new Item();
-        item.withString("name", "spazieren gehen");
-        
-        //table.putItem(item);
-        
-        //log.info("PUT STUFF IN TABLE");
-        
-        
-        
-    	/*ProfileCredentialsProvider credentialsProvider = new ProfileCredentialsProvider();
-    	
-        try {
-            credentialsProvider.getCredentials();
-        } catch (Exception e) {
-            throw new AmazonClientException(
-                    "Cannot load the credentials from the credential profiles file. " +
-                    "Please make sure that your credentials file is at the correct " +
-                    "location (C:\\Users\\Macel\\.aws\\credentials), and is in valid format.",
-                    e);
-        }
-        
-        credentialsProvider.
-        
-        db = new AmazonDynamoDBClient(credentialsProvider);
-    	
-        AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard()
-                .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration("http://localhost:8000", "us-west-2"))
-                .build();
-        
-        DynamoDB dynamoDB = new DynamoDB(client);
-
-        String tableName = "Movies";
-
-        try {
-            System.out.println("Attempting to create table; please wait...");
-            Table table = dynamoDB.createTable(tableName,
-                Arrays.asList(new KeySchemaElement("year", KeyType.HASH), // Partition
-                                                                          // key
-                    new KeySchemaElement("title", KeyType.RANGE)), // Sort key
-                Arrays.asList(new AttributeDefinition("year", ScalarAttributeType.N),
-                    new AttributeDefinition("title", ScalarAttributeType.S)),
-                new ProvisionedThroughput(10L, 10L));
-            table.waitForActive();
-            System.out.println("Success.  Table status: " + table.getDescription().getTableStatus());
-
-        }
-        catch (Exception e) {
-            System.err.println("Unable to create table: ");
-            System.err.println(e.getMessage());
-        }*/
-    	
-        //log.info("Table is ready for use! " + desc);
-    	
-    	
-            /*DynamoDB dynamoDB = new DynamoDB(dbclient);
-
-            String tableName = "Movies";
-
-            try {
-                System.out.println("Attempting to create table; please wait...");
-                Table table = dynamoDB.createTable(tableName,
-                    Arrays.asList(new KeySchemaElement("year", KeyType.HASH), // Partition
-                                                                              // key
-                        new KeySchemaElement("title", KeyType.RANGE)), // Sort key
-                    Arrays.asList(new AttributeDefinition("year", ScalarAttributeType.N),
-                        new AttributeDefinition("title", ScalarAttributeType.S)),
-                    new ProvisionedThroughput(10L, 10L));
-                table.waitForActive();
-                System.out.println("Success.  Table status: " + table.getDescription().getTableStatus());
-
-            }
-            catch (Exception e) {
-                System.err.println("Unable to create table: ");
-                System.err.println(e.getMessage());
-            }*/
     }
 
 	// Sets all user-related data (specified in the db)
