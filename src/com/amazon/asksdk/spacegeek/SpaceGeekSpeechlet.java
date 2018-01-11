@@ -468,9 +468,18 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     
     // Initializes db access, handles access requests
 	private void initDb() {
+		// test 
+		/*AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().build();
+		//AmazonDynamoDB client = new AmazonDynamoDBClient();
+		DynamoDB dynamoDB = new DynamoDB(client);
+		Item item = new Item();
+		item.withString("hallo", "ich");
+		dynamoDB.getTable("exEinsTable").putItem(item);
+		*/
+		
     	log.info("INITDB");
 		Database database = new Database(); 
-    	String tableName = "exEinsTable";
+    	String tableName = "exEinsUsers";
     	String dbEnpointNorthVirginia = "dynamodb.us-east-1.amazonaws.com";
     	String loc = "inside";
     	String ext = "relaxed";

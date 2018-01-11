@@ -72,18 +72,18 @@ public class Database {
 		getTable(usersTable).putItem(item);
 	}
 	
-	public void updateName(String, userId, String userName) {
+	public void updateName(String userId, String userName) {
 		Map<String, String> attributeNames = new HashMap<String, String>();
 		attributeNames.put("id", userId);
 		
-		Map<String, Object> attributeValues = new HasMap<String, Object>();
+		Map<String, Object> attributeValues = new HashMap<String, Object>();
 		attributeValues.put("name", userName);
 		
 		UpdateItemSpec spec = new UpdateItemSpec(); 
-		AttributeUpdate update = new AttributeUpdate();
-		update.
+		//AttributeUpdate update = new AttributeUpdate();
+		//update.
 		
-		getTable(usersTable).up
+		//getTable(usersTable).up
 	}
 	
 	public void updateFormalSpeech(boolean formalSpeech) {
