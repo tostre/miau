@@ -48,39 +48,39 @@ public class WeatherProvider {
         // Set weather attributes 
 		if(weatherId >= 200 && weatherId < 300) {
 			// Gewitter
-			weatherDescription = "gewittert es";
+			weatherDescription = "soll es gewittern. ";
 			weatherGood = false; 
 		} else if(weatherId >= 300 && weatherId < 600) {
 			// leichter Regen
-			weatherDescription = "regnet es";
+			weatherDescription = "soll es regnen. ";
 			weatherGood = false; 
 		} else if(weatherId >= 600 && weatherId < 700) {
 			// Schnee
-			weatherDescription = "schneit es";
+			weatherDescription = "soll es scheien. ";
 			weatherGood = false; 
 		} else if(weatherId >= 700 && weatherId < 800) {
 			// Atmosphäre
-			weatherDescription = "ist es neblig oder rauchig";
+			weatherDescription = "soll es sehr neblig werden. ";
 			weatherGood = false; 
 		} else if(weatherId == 800) {
 			// Klar
-			weatherDescription = "scheint die Sonne";
+			weatherDescription = "soll es sonnig werden. ";
 			weatherGood = true; 
 		} else if(weatherId >= 801 && weatherId < 900) {
 			// Bewölkt
-			weatherDescription = "ist es bewölkt";
+			weatherDescription = "soll es bewölkt werden. ";
 			weatherGood = true; 
 		} else if(weatherId >= 900 && weatherId < 910) {
 			// Extrem
-			weatherDescription = "ist es wegen der Wetterbedingungen gefährlich raus zu gehen";
+			weatherDescription = "ist es wegen der Wetterbedingungen gefährlich raus zu gehen. ";
 			weatherGood = false; 
 		} else if (weatherId >= 951 && weatherId < 954) {
 			// Leichte Brise
-			weatherDescription = "weht eine leichte Brise";
+			weatherDescription = "soll eine leichte Brise wehen. ";
 			weatherGood = true; 
 		} else {
 			// Sehr windig
-			weatherDescription = "weht der Wind sehr stark";
+			weatherDescription = "soll der Wind sehr stark wehen. ";
 			weatherGood = false; 
 		}
 	}

@@ -1,47 +1,102 @@
 package com.amazon.asksdk.spacegeek;
 
 public class Activity {
+
+	private String type;
+	private String location; 
+	private String exertion; 
+	private String bodypart;
 	
-	private String activityType;
-	private String activityLocation; 
-	private String activityExertion; 
-	private String activityBodyPart;
+	private boolean typeSet; 
+	private boolean locationSet;
+	private boolean exertionSet;
+	private boolean bodypartSet;
 	
 	public Activity() {
 		
 	}
-
-	public String getActivityType() {
-		return activityType;
+	
+	
+	
+	
+	// Set status
+	public void setType(String type) {
+		this.type = type;
+		
+		if(type != null) {
+			typeSet = true; 
+		} else {
+			typeSet = false; 
+		}
 	}
 
-	public void setActivityType(String activityType) {
-		this.activityType = activityType;
+	public void setLocation(String location) {
+		this.location = location;
+		
+		if(location != null) {
+			locationSet = true; 
+		} else {
+			locationSet = false; 
+		}
 	}
 
-	public String getActivityLocation() {
-		return activityLocation;
+	public void setExertion(String exertion) {
+		this.exertion = exertion;
+		
+		if(exertion != null) {
+			exertionSet = true; 
+		} else {
+			exertionSet = false; 
+		}
 	}
 
-	public void setActivityLocation(String activityLocation) {
-		this.activityLocation = activityLocation;
+	public void setBodypart(String bodypart) {
+		this.bodypart = bodypart;
+		
+		if(bodypart != null) {
+			bodypartSet = true; 
+		} else {
+			bodypartSet = false; 
+		}
+	}
+	
+	// Get status values
+	public String getType() {
+		return type;
+	}
+	
+	public String getLocation() {
+		return location;
+	}
+	
+	public String getExertion() {
+		return exertion;
 	}
 
-	public String getActivityExertion() {
-		return activityExertion;
+	public String getBodypart() {
+		return bodypart;
+	}
+	
+	// Get status methods
+	public boolean isTypeSet() {
+		return typeSet;
 	}
 
-	public void setActivityExertion(String activityExertion) {
-		this.activityExertion = activityExertion;
+	public boolean isLocationSet() {
+		return locationSet;
 	}
 
-	public String getActivityBodyPart() {
-		return activityBodyPart;
+	public boolean isExertionSet() {
+		return exertionSet;
 	}
 
-	public void setActivityBodyPart(String activityBodyPart) {
-		this.activityBodyPart = activityBodyPart;
+	public boolean isBodypartSet() {
+		return bodypartSet;
 	}
+
+	
+
+
 	
 	
 

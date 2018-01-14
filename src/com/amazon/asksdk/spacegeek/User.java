@@ -8,10 +8,15 @@ public class User {
 	private String name; 
 	private String nameAsk; 
 	private boolean formalSpeech; 
-	private boolean setupComplete;
-	private boolean introductionHeard; 
 	private ArrayList<String> excludedBodyparts; 
 	
+	private boolean idSet; 
+	private boolean nameSet; 
+	private boolean speechStyleSet; 
+	private boolean excludedBodypartsSet;
+	private boolean introductionHeard; 
+	private boolean setupComplete; 
+	//TODO: Getter und setter, genauso aufbauen wie in activity
 	public User(String id, String name, boolean formalSpeech, boolean setupComplete, boolean introductionHeard, ArrayList<String> excludedBodyparts) {
 		this.id = id;
 		this.name = name + "";
@@ -21,60 +26,6 @@ public class User {
 		this.introductionHeard = introductionHeard;
 		this.excludedBodyparts = excludedBodyparts;
 	}
-
-	public String getId() {
-		return id;
-	}
-
-	public void setId(String id) {
-		this.id = id;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name + "";
-	}
-	
-	public String getNameAsk() {
-		return nameAsk; 
-	}
-	
-	public void setNameAsk(String nameAsk) {
-		this.nameAsk = nameAsk + "? "; 
-	}
-
-	public boolean isFormalSpeech() {
-		return formalSpeech;
-	}
-
-	public void setFormalSpeech(boolean formalSpeech) {
-		this.formalSpeech = formalSpeech;
-	}
-
-	public boolean isSetupComplete() {
-		return setupComplete;
-	}
-
-	public void setSetupComplete(boolean setupComplete) {
-		this.setupComplete = setupComplete;
-	}
-
-	public boolean isIntroductionHeard() {
-		return introductionHeard;
-	}
-
-	public void setIntroductionHeard(boolean introductionHeard) {
-		this.introductionHeard = introductionHeard;
-	}
-
-	public ArrayList<String> getExcludedBodyparts() {
-		return excludedBodyparts;
-	}
-
-	public void setExcludedBodyparts(ArrayList<String> excludedBodyparts) {
-		this.excludedBodyparts = excludedBodyparts;
-	}
 }
+
+	
