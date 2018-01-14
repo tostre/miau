@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -143,34 +144,28 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     String sessionId;
     
     // user data
-    private String userNameTell = "Maria ";
-    private String userNameAsk = "Maria? ";
-    private boolean userNameSet = false; 
-    private boolean formalSpeech = true; 
-    private boolean speechStyleSet = false; 
-    private boolean excludedBodypartsSet = false; 
-    private boolean firstSetupComplete; 
-    private boolean introductionHeard = false; 
-    private ArrayList<String> EXCLUDED_BODYPARTS = new ArrayList<String>();
+    private User user; 
+    //private boolean userNameSet = false; 
+    //private boolean formalSpeech = true; 
+    //private boolean speechStyleSet = false; 
+    //private boolean excludedBodypartsSet = false; 
+    //private boolean firstSetupComplete; 
+    //private boolean introductionHeard = false; 
+    //private ArrayList<String> EXCLUDED_BODYPARTS = new ArrayList<String>();
+    private String userId = ""; 
     
     // Activity data
-    private String activityType = "leer"; // exercise, game, activity
-    private String activityExertion = "leer"; // relaxed, exhausting
-    private String activityLocation = "leer"; // inside, outside, both
-    private String activityBodyPart = "leer";
-    private boolean activityWithFriends = false; // true, false
-    private ArrayList<String> activityExcludeBodypart = new ArrayList<>(); // Exclude activities that put strain on these body parts
-    private ArrayList<String> activityIncludeBodypart = new ArrayList<>(); // Choose activities that include these body parts
+    //private String activityType = "leer"; // exercise, game, activity
+    //private String activityExertion = "leer"; // relaxed, exhausting
+    //private String activityLocation = "leer"; // inside, outside, both
+    //private String activityBodyPart = "leer";
     
     // Actity data set 
-    private boolean activityTypeSet; 
-    private boolean activityExertionSet; 
-    private boolean activityLocationSet; 
-    private boolean activityBodypartSet;
-    private boolean activityWithFriendsSet; 
-    private boolean activityExcludeBodypartSet; 
-    private boolean activityIncludeBodypartSet; 
-    private boolean weatherSet; 
+    //private boolean activityTypeSet; 
+    //private boolean activityExertionSet; 
+    //private boolean activityLocationSet; 
+    //private boolean activityBodypartSet;
+    private WeatherProvider weatherProvider; 
     
     // weather data
     private String fetchWeatherUrl = "http://api.openweathermap.org/data/2.5/weather?id=2935517&APPID=44956c0ccd5905a239c4ee266863eb06";
@@ -179,19 +174,13 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     
     // database and storage data
     private Session session; 
+    private Database database; 
+    private static final String usersTable = "exEinsUsers";
+    private static final String gamesTable = "exEinsGames";
+    private static final String exercisesTable = "exEinsExercises";
+    private static final String occupationsTable = "exEinsOccupations";
     
     // Array mit Fakten
-    private static final String[] SPACE_FACTS = new String[] {
-            "Ein Jahr auf dem Merkur ist 88 Tage lang.",
-            "Venus rotiert gegen den Uhrzeigersinn.",
-            "Die Erde ist als einziger Planet nicht nach einem Gott benannt."
-    };
-    private static final String[] CARS_FACTS = new String[] {
-            "Ein Auto fährt.",
-            "Autos verbrauchen Benzin.",
-            "Autos haben vier Räder."
-    };
-    
     // Slots mit Synonymen (weil man ohne den SkillBuilder keine Synonyme nutzen kann
     private static final String[] EXERTIONS_RELAXED = new String[] {
     		"entspannt", 
@@ -366,22 +355,25 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
 	// Called when application is launched from keyword ("Starte Fakten")
     public SpeechletResponse onLaunch(SpeechletRequestEnvelope<LaunchRequest> requestEnvelope) {
     	log.info("ONLAUNCH");
-        session = requestEnvelope.getSession();
+        /*session = requestEnvelope.getSession();
+        userId = session.getUser().getUserId();
         goodWeather = getWeather(); 
         // TODO: Remove this line
 	    goodWeather = true; 
 	    
 	    initDb(); 
         initUserData(); 
-        initSpeech();
+        initSpeech();*/
         return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech(greetingText));
     }
 
     // Ka, wann das gestartet wird 
     public void onSessionStarted(SpeechletRequestEnvelope<SessionStartedRequest> requestEnvelope) {
     	log.info("ONSESSIONSTARTED");
-        requestId = requestEnvelope.getRequest().getRequestId();
+      /*  requestId = requestEnvelope.getRequest().getRequestId();
 	    sessionId = requestEnvelope.getSession().getSessionId();
+	    userId = requestEnvelope.getSession().getUser().getUserId();
+    	log.info("ONSESSIONSTARTED" + userId);
 	    goodWeather = getWeather(); 
         // TODO: Remove this line
 	    goodWeather = true; 
@@ -390,19 +382,23 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         initUserData(); 
         initSpeech();
 	    log.info("onSessionStarted requestId={}, sessionId={}", requestId, sessionId);
-    }
+    */}
+    
     
     public void onSessionEnded(SpeechletRequestEnvelope<SessionEndedRequest> requestEnvelope) {
-        log.info("onSessionEnded requestId={}, sessionId={}", requestEnvelope.getRequest().getRequestId(),
+        /*log.info("onSessionEnded requestId={}, sessionId={}", requestEnvelope.getRequest().getRequestId(),
 		requestEnvelope.getSession().getSessionId());
         // any cleanup logic goes here
-    }
+    */}
     
     // TODO: Checken ob setup komplett ist 
     public SpeechletResponse onIntent(SpeechletRequestEnvelope<IntentRequest> requestEnvelope) {
-    	IntentRequest request = requestEnvelope.getRequest();
-        session = requestEnvelope.getSession();
     	log.info("ONINTENT");
+    	/*IntentRequest request = requestEnvelope.getRequest();
+        session = requestEnvelope.getSession();
+        userId = session.getUser().getUserId();
+    	log.info("ONINTENT");
+    	log.info("ONINTENT" + userId);
         log.info("onIntent requestId={}, sessionId={}", request.getRequestId()  , requestEnvelope.getSession().getSessionId());
     	
         goodWeather = getWeather(); 
@@ -417,7 +413,7 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         String intentName = (intent != null) ? intent.getName() : null;
         
         // This is the start of a user request
-        if(!firstSetupComplete) {
+        if(!user.isSetupComplete()) {
         	return firstSetup(intent); 
         } else {
         	if(!activityTypeSet) {
@@ -451,9 +447,9 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
 	        		return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech(errorText));
 	        	}
 	        }
-        }
+        }*/
         
-        
+        return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech(errorText));
     }
     
     
@@ -461,68 +457,47 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     
     
 	////////// SETUP AND USER DATA METHODS /////////////////////////////////////////////////////////////////////////////////////////
-	    
-    private void dbTest() {
+	
+    private void init(Session session) {
+    	log.info("init");
     	
+    	// Variables
+    	userId = session.getUser().getUserId();
+    	
+    	// Initiate database dynamodb service connection
+    	database = new Database(); 
+    	
+    	// Get weather data
+    	weatherProvider = new WeatherProvider(); 
+    	
+    	// Get user data
+    	Item userItem = database.getUser(userId);
+		if(userItem != null) {
+			// if user exists, load his data
+			String name = userItem.getString("name");
+			boolean formalSpeech = userItem.getBoolean("formalSpeech");
+			boolean firstSetupComplete = userItem.getBoolean("firstSetupComplete");
+			boolean introductionHeard = userItem.getBoolean("introductionHeard");
+			ArrayList<String> excludedBodyParts = new ArrayList<String>(userItem.getStringSet("excludedBodyParts"));
+			
+			user = new User(userId, name, formalSpeech, firstSetupComplete, introductionHeard, excludedBodyParts);
+		} else {
+			// if user doesn't exist in table, create new empty user 
+			log.error("could not find userId in table");
+			user = new User(userId, "nameEmpty", false, false, false, new ArrayList<String>());
+		}
+		
+		
     }
     
-    // Initializes db access, handles access requests
-	private void initDb() {
-		// test 
-		/*AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().build();
-		//AmazonDynamoDB client = new AmazonDynamoDBClient();
-		DynamoDB dynamoDB = new DynamoDB(client);
-		Item item = new Item();
-		item.withString("hallo", "ich");
-		dynamoDB.getTable("exEinsTable").putItem(item);
-		*/
-		
-    	log.info("INITDB");
-		Database database = new Database(); 
-    	String tableName = "exEinsUsers";
-    	String dbEnpointNorthVirginia = "dynamodb.us-east-1.amazonaws.com";
-    	String loc = "inside";
-    	String ext = "relaxed";
-    	String userId = "ihfg3j3jj5j5jh63989ao";
-    	Regions REGION = Regions.US_WEST_2;
-    	
-		
-		// Create new table with specified key schema
-		List<KeySchemaElement> keySchema = new ArrayList<>();
-        keySchema.add(new KeySchemaElement("id", "Number"));
-        keySchema.add(new KeySchemaElement("name", "String"));
-		database.createTable(tableName, keySchema);
-		
-		
-		
-		// Writes an item into the table 
-		List<String> excludedBodyParts = new ArrayList<String>();
-		excludedBodyParts.add("schulter");
-		excludedBodyParts.add("knie");
-		
-		Item item = new Item(); 
-		item.withNumber("id", 3);
-		item.withString("name", "Walter");
-		item.withList("excludedBodyParts", excludedBodyParts);
-		
-		database.putItem(tableName, item);
-		
-		
-    	// Gets a users name
-		String userName = database.getUserName(userId); 
-        
-        // etc. 
     
-        
-        
-    }
 
 	// Sets all user-related data (specified in the db)
 	private void initUserData() {
 		log.info("INITUSERERDATA");
-		// TODO: Get data from db
-		firstSetupComplete = false;
+		log.info(userId);
 		
+		/*
 		if(!firstSetupComplete) {
 			return; 
 		} else {
@@ -536,13 +511,13 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
 		    // excluded bodyparts from exercises
 		    EXCLUDED_BODYPARTS.add("knie");
 		    EXCLUDED_BODYPARTS.add("schulter");
-		}
+		}*/
 	}
 	
 	// Overwrites speech variables as to match the user preference regarding formal and informal speech
     private void initSpeech() {
     	log.info("INITSPEECH");
-    	if(formalSpeech) {
+    	if(user.isFormalSpeech()) {
     		helpText = helpTextF; 
     		errorText = errorTextF;
     		askForLocation = askForLocationF; 
@@ -607,7 +582,7 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         }
 		
 		
-		firstSetupComplete = true; 
+		user.setSetupComplete(true); 
 		
 		String output = "Nun gut, " + userNameTell + ", sie können mich nun nach Übungen, Spielen oder Beschäftigungen fragen";
 		
@@ -1021,7 +996,7 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     ////////// ADDITIONAL FUNCTIONS /////////////////////////////////////////////////////////////////////////////////////////
     
     // Fetch weather data and get weather description and if weather is good enough for going out
-    private boolean getWeather(){
+    /*private boolean getWeather(){
     	log.info("GETWEATHER");
     	
     	weatherDescription = "Ich konnte keine Daten zum jetzigen Wetter finden";
@@ -1094,7 +1069,7 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
 			weatherSet = true; 
 			return goodWeather = false; 
 		}
-    }
+    }*/
     
     
     
@@ -1139,6 +1114,7 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     
     ////////// HELPER FUNCTIONS /////////////////////////////////////////////////////////////////////////////////////////
     
+    // Creates a simple card
     // Creates a card object.
     private SimpleCard getSimpleCard(String title, String content) {
         SimpleCard card = new SimpleCard();
@@ -1147,6 +1123,7 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
 
         return card;
     }
+    
     
     /**
      * Helper method for retrieving an OutputSpeech object when given a string of TTS.
@@ -1187,90 +1164,58 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         return SpeechletResponse.newAskResponse(speech, reprompt, card);
     }
     
+    ////////// TEST FUNCTIONS /////////////////////////////////////////////////////////////////////////////////////////
     
-    
-//////////TEST FUNCTIONS /////////////////////////////////////////////////////////////////////////////////////////
-    
-// Repeats a number and a metric
-private SpeechletResponse repeat(final Intent intent) {
-	String number = "";
- String metric = "";
- String metricAdj = "";
-	
-	// Get the slots from the intent.
- Map<String, Slot> slots = intent.getSlots();
- Slot numberSlot = slots.get("number");
- Slot metricSlot = slots.get("metric");
- Slot metricAdjSlot = slots.get("metricAdj");
- 
- number = numberSlot.getValue();
- metric = metricSlot.getValue();
- metricAdj = metricAdjSlot.getValue();
-	
- String speechText = "Ok, bis dann!";
- 
- if(number != "" && metric != "" && metricAdj != "") {
- 	if(number != null && metric != null  && metricAdj != null ) {
- 		speechText = "Ok, ich habe " + number + " " + metric + " " + metricAdj + " verstanden";
- 	}
- 	
- }
-	
- // Create the plain text output.
- PlainTextOutputSpeech speech = getPlainTextOutputSpeech(speechText);
- //return SpeechletResponse.newTellResponse(speech, card);
- return SpeechletResponse.newTellResponse(speech);
- 
-}
-
-// Gets random new fact from the list and returns to user.
-private SpeechletResponse getNewFactResponse(final Intent intent) {
-	// Get the slots from the intent.
- Map<String, Slot> slots = intent.getSlots();
- Slot topicSlot = slots.get(TOPIC_SLOT);
- String speechText = "Das ist der Standardtext"; 
- String fact; 
- String topic; 
- int factIndex; 
- 
- if(topicSlot != null && topicSlot.getValue() != null && !topicSlot.getValue().equalsIgnoreCase("")){
- 	topic = topicSlot.getValue();
- 	
- 	switch(topic){
- 	case "autos":
- 		// Get a random space fact from the space facts list
-     	factIndex = (int) Math.floor(Math.random() * CARS_FACTS.length);
-     	fact = CARS_FACTS[factIndex];
-     	speechText = "Hier ist ein Fakt über Autos: " + fact;
- 		break;
- 	case "weltraum":
- 		factIndex = (int) Math.floor(Math.random() * SPACE_FACTS.length);
-     	fact = SPACE_FACTS[factIndex];
-     	speechText = "Hier ist ein Fakt über den Weltraum: " + fact;
- 		break;
-		default: 
-			speechText = "Zur Zeit " + getWeather();
-			break; 
+ // Initializes db access, handles access requests
+ 	private void testDb() {
+ 		// test 
+ 		/*AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().build();
+ 		//AmazonDynamoDB client = new AmazonDynamoDBClient();
+ 		DynamoDB dynamoDB = new DynamoDB(client);
+ 		Item item = new Item();
+ 		item.withString("hallo", "ich");
+ 		dynamoDB.getTable("exEinsTable").putItem(item);
+ 		*/
+ 		
+     	log.info("INITDB");
+ 		database = new Database(); 
+     	String dbEnpointNorthVirginia = "dynamodb.us-east-1.amazonaws.com";
+     	String loc = "inside";
+     	String ext = "relaxed";
+     	String userId = "ihfg3j3jj5j5jh63989ao";
+     	Regions REGION = Regions.US_WEST_2;
+     	
+ 		
+ 		// Create new table with specified key schema
+ 		/*List<KeySchemaElement> keySchema = new ArrayList<>();
+         keySchema.add(new KeySchemaElement("id", "Number"));
+         keySchema.add(new KeySchemaElement("name", "String"));
+ 		database.createTable(tableName, keySchema);*/
+ 		
+ 		
+ 		
+ 		// Writes an item into the table 
+ 		/*List<String> excludedBodyParts = new ArrayList<String>();
+ 		excludedBodyParts.add("schulter");
+ 		excludedBodyParts.add("knie");
+ 		
+ 		Item item = new Item(); 
+ 		item.withNumber("id", 3);
+ 		item.withString("name", "Walter");
+ 		item.withList("excludedBodyParts", excludedBodyParts);
+ 		
+ 		database.putItem(tableName, item);*/
+ 		
+ 		
+     	// Gets a users name
+ 		//String userName = database.getUserName(userId); 
+         
+         // etc. 
      
+         
+         
      }
-	 } else {
-	 	speechText = "Zur Zeit " + getWeather();
-	 }
-	 
-	 	
-	 // Create the Simple card content.
-	 SimpleCard card = getSimpleCard("SpaceGeek", speechText);
-	 // Create the plain text output.
-	 PlainTextOutputSpeech speech = getPlainTextOutputSpeech(speechText);
-	
-	return SpeechletResponse.newTellResponse(speech, card);
-	}
-
-
-
-
-
-
+    
 
 }
 

@@ -26,7 +26,11 @@ public class Database {
 	private static final Logger log = LoggerFactory.getLogger(SpaceGeekSpeechlet.class);
 	private AmazonDynamoDB client; 
 	private DynamoDB dynamoDB; 
-	private String usersTable = "exEinsUsersTable"; 
+	
+	private static final String usersTable = "exEinsUsers";
+    private static final String gamesTable = "exEinsGames";
+    private static final String exercisesTable = "exEinsExercises";
+    private static final String occupationsTable = "exEinsOccupations";
 	
 	public Database() {
 		client = AmazonDynamoDBClientBuilder.standard().build();
@@ -99,6 +103,39 @@ public class Database {
 	///////////////////////////////////////////////
 	// READ USER DATA FROM DB //////////////////////////////
 	//////////////////////////////////////////////
+	
+	public Item getUser(String userId) {
+		Table table = getTable(usersTable);
+		GetItemSpec spec = new GetItemSpec().withPrimaryKey("id", userId);
+		
+		try {
+			Item userItem = table.getItem(spec);
+			return userItem; 
+		} catch (Exception e){
+			return null;
+		}
+	}
+	
+	
+	public void createNewUser(String userId) {
+		Table table = getTable(usersTable);
+		//TODO: Create a new empty user (delete whatever is not needed)
+		//excludedBodyParts.add("schulter");
+ 		//excludedBodyParts.add("knie");
+ 		
+ 		Item item = new Item(); 
+ 		item.withNumber("id", 3);
+ 		item.withString("name", "Walter");
+ 		//item.withList("excludedBodyParts", excludedBodyParts);
+		
+		
+		table.putItem(item);
+	}
+	
+	
+	
+	
+	
 	
 	//TODO: die beiden Strings ausgeben, gucken wie die aufgebaut sind und wie man den namen da raus bekommt 
 	public String getUserName(String userId) {
