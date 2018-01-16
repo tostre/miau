@@ -490,5 +490,35 @@ public class OldMethods {
 		return null;
     }
 	
-	
+    // Overwrites speech variables as to match the user preference regarding formal and informal speech
+    private void initSpeechOld() {
+    	/*log.info("INITSPEECH");
+    	if(user.preferesFormalSpeech()) {
+    		helpText = helpTextF; 
+    		errorText = errorTextF;
+    		askForLocation = askForLocationF; 
+    		askForLocationRe = askForLocationReF;
+    		askForExertion = askForExertionF; 
+    		askForExertionRe = askForExertionReF;
+    		askForBodypart = askForBodypartF;
+    		askForBodypartRe = askForBodypartReF;
+    		askForName = askForNameF;
+    		askForNameRe = askForNameReF; 
+    		confirmSpeechStyle = confirmSpeechStyleF;
+    		greetingText = GREETINGS_FORMAL[(int) Math.floor(Math.random() * GREETINGS_FORMAL.length)];
+    	} else {
+    		helpText = helpTextI; 
+    		errorText = errorTextI;
+    		askForLocation = askForLocationI;
+    		askForLocationRe = askForLocationReI; 
+    		askForExertion = askForExertionI; 
+    		askForExertionRe = askForExertionReI;
+    		askForBodypart = askForBodypartI;
+    		askForBodypartRe = askForBodypartReI;
+    		askForName = askForNameI;
+    		askForNameRe = askForNameReI;
+    		confirmSpeechStyle = confirmSpeechStyleI;
+    		greetingText = GREETINGS_INFORMAL[(int) Math.floor(Math.random() * GREETINGS_INFORMAL.length)];
+    	}*/
+    }
 }

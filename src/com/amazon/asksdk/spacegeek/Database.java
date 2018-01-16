@@ -1,6 +1,7 @@
 package com.amazon.asksdk.spacegeek;
 
 import java.awt.ItemSelectable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -64,14 +65,24 @@ public class Database {
 		
 	}
 	
-	public void saveUser(String userId, String userName, List<String> excludedBodyparts, boolean formalSpeech, boolean setupComplete, boolean introductionHeard) {
+	public void saveUser(String userId, String userName, List<String> excludedBodyparts, boolean formalSpeech, boolean setupComplete) {
 		Item item = new Item(); 
 		item.withString("id", userId);
 		item.withString("name", userName);
 		item.withList("exludedBodyParts", excludedBodyparts);
 		item.withBoolean("formalSpeech", formalSpeech);
 		item.withBoolean("firstSetupComplete", setupComplete);
-		item.withBoolean("introductionHeard", introductionHeard);
+		
+		getTable(usersTable).putItem(item);
+	}
+	
+	public void saveUser(User user) {
+		Item item = new Item(); 
+		item.withString("id", user.getId());
+		item.withString("name", user.getName());
+		item.withList("exludedBodyParts", user.getExcludedBodyparts());
+		item.withBoolean("formalSpeech", user.preferesFormalSpeech());
+		item.withBoolean("firstSetupComplete", user.isSetupComplete());
 		
 		getTable(usersTable).putItem(item);
 	}
@@ -104,13 +115,14 @@ public class Database {
 	// READ USER DATA FROM DB //////////////////////////////
 	//////////////////////////////////////////////
 	
-	public Item getUser(String userId) {
+	public User getUser(String userId) {
 		Table table = getTable(usersTable);
 		GetItemSpec spec = new GetItemSpec().withPrimaryKey("id", userId);
 		
 		try {
 			Item userItem = table.getItem(spec);
-			return userItem; 
+			
+			return new User(userItem.getString("id"), userItem.getString("name"), userItem.getBoolean("formalSpeech"), userItem.getBoolean("firstSetupComplete"), new ArrayList<String>(userItem.getStringSet("excludedBodyParts"))); 
 		} catch (Exception e){
 			return null;
 		}
@@ -156,6 +168,7 @@ public class Database {
 	}
 	
 	public boolean getFormalSpeech(String userId) {
+		
 		return false; 
 	}
 	
@@ -163,9 +176,7 @@ public class Database {
 		return false; 
 	}
 	
-	public boolean getIntroductionHeard(String userId) {
-		return false; 
-	}
+	
 	
 	///////////////////////////////////////////////
 	// READ ACTIVITY DATA FROM DB //////////////////////////////

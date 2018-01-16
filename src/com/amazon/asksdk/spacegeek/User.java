@@ -2,6 +2,9 @@ package com.amazon.asksdk.spacegeek;
 
 import java.util.ArrayList;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.amazonaws.services.s3.waiters.HeadBucketFunction;
 
 public class User {
@@ -16,18 +19,23 @@ public class User {
 	private boolean nameSet; 
 	private boolean speechStyleSet; 
 	private boolean excludedBodypartsSet;
-	private boolean introductionHeard; 
 	private boolean setupComplete; 
 	
-	public User(String id, String name, boolean formalSpeech, boolean setupComplete, boolean introductionHeard, ArrayList<String> excludedBodyparts) {
+	public User(String id, String name, boolean formalSpeech, boolean setupComplete, ArrayList<String> excludedBodyparts) {
 		this.id = id;
 		this.name = name + "";
 		this.nameAsk = name + "? ";
 		this.formalSpeech = formalSpeech;
 		this.excludedBodyparts = excludedBodyparts;
 		this.setupComplete = setupComplete;
-		this.introductionHeard = introductionHeard;
-		
+	}
+	
+	public void printUser() {
+		Logger log = LoggerFactory.getLogger(SpaceGeekSpeechlet.class);
+		log.info("user name: " + name);
+		log.info("user formalSpeech: " + formalSpeech);
+		log.info("user setupComplete: " + setupComplete);
+	
 	}
 	
 	public void setId(String id) {
@@ -68,10 +76,6 @@ public class User {
 		this.setupComplete = setupComplete;
 	}
 	
-	public void setIntroductionHeard(boolean introductionHeard) {
-		this.introductionHeard = introductionHeard;
-	}
-	
 	public String getId() {
 		return id; 
 	}
@@ -102,10 +106,6 @@ public class User {
 	
 	public boolean isSetupComplete() {
 		return setupComplete;
-	}
-	
-	public boolean hasHeardIntroduction() {
-		return introductionHeard;
 	}
 }
 
