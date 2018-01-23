@@ -3,6 +3,7 @@ package com.amazon.asksdk.spacegeek;
 import java.awt.ItemSelectable;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -14,11 +15,19 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.amazonaws.services.dynamodbv2.document.AttributeUpdate;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 import com.amazonaws.services.dynamodbv2.document.Item;
+import com.amazonaws.services.dynamodbv2.document.ItemCollection;
+import com.amazonaws.services.dynamodbv2.document.QueryOutcome;
+import com.amazonaws.services.dynamodbv2.document.ScanOutcome;
 import com.amazonaws.services.dynamodbv2.document.Table;
 import com.amazonaws.services.dynamodbv2.document.spec.GetItemSpec;
+import com.amazonaws.services.dynamodbv2.document.spec.QuerySpec;
+import com.amazonaws.services.dynamodbv2.document.spec.ScanSpec;
 import com.amazonaws.services.dynamodbv2.document.spec.UpdateItemSpec;
+import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.CreateTableRequest;
 import com.amazonaws.services.dynamodbv2.model.KeySchemaElement;
+import com.amazonaws.services.dynamodbv2.model.ScanRequest;
+import com.amazonaws.services.dynamodbv2.model.ScanResult;
 import com.amazonaws.services.inspector.model.Attribute;
 import com.amazonaws.services.stepfunctions.model.ExecutionStartedEventDetails;
 
@@ -183,14 +192,77 @@ public class Database {
 	//////////////////////////////////////////////
 	
 	public String getGame(String location, String exertion) {
-		return null; 
+		Table table = getTable(gamesTable);
+		GetItemSpec spec = new GetItemSpec().withPrimaryKey("id", 1);
+		
+		
+		try {
+			Item gameItem = table.getItem(spec);
+			
+			String game = gameItem.getString("name") + gameItem.getString("description");
+			
+			return game; 
+		} catch (Exception e){
+			return "Beim Abrufen des Spiels ist ein Fehler aufgetreten. Das tut mir leid, bitte versuche es später noch einmal ";
+		}
+	}
+	
+	public String getGameQ (String location, String exertion) {
+		
+		
+		
+		
+		// Define filter expressions (bebause location is a protected name
+		Map<String, String> expressionAttributeNames = new HashMap<String, String>();
+		expressionAttributeNames.put("#loc", "location");
+		expressionAttributeNames.put("#ext", "exertion");
+		Map<String, AttributeValue> expressionAttributeValues = new HashMap<String, AttributeValue>();
+		expressionAttributeValues.put(":loc", new AttributeValue().withS(location));
+		expressionAttributeValues.put(":ext", new AttributeValue().withS(exertion));
+		// Scan the table with defined filters 
+		ScanRequest scanRequest = new ScanRequest();
+		scanRequest.withTableName(gamesTable);
+		scanRequest.withFilterExpression("#loc = :loc AND #ext = :ext");
+		scanRequest.withExpressionAttributeNames(expressionAttributeNames);
+		scanRequest.withExpressionAttributeValues(expressionAttributeValues);
+		ScanResult result = client.scan(scanRequest);
+		
+		for (Map<String, AttributeValue> item : result.getItems()){
+		    //TODO: Fill database
+			//TODO: Get random entry from result (evtl. vorher in arraylist oder so übertragen) 
+			log.info("DB ENTRY NAME: " + item.toString());
+		}
+		
+		//greetingText = GREETINGS_INFORMAL[(int) Math.floor(Math.random() * GREETINGS_INFORMAL.length)];
+		
+        String out = "Es ist ein Fehler aufgetreten"; 
+        
+        /*
+        
+        try {
+            log.info("Try quering db");
+            
+            ItemCollection<ScanOutcome> items = table.scan(scanSpec);
+            
+            Iterator<Item> iter = items.iterator();
+            while (iter.hasNext()) {
+                Item item = iter.next();
+                System.out.println(item.toString());
+            }
+
+
+        }
+        catch (Exception e) {
+            return out; 
+        }*/
+		return out;
 	}
 	
 	public String getExercise(String location, String bodypart) {
-		return null; 
+		return "Eine Übung "; 
 	}
 	
 	public String getOccupation(String location, String exertion) {
-		return null; 
+		return "Eine Beschäftigung "; 
 	}
 }

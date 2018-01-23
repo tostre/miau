@@ -85,11 +85,79 @@ public class WeatherProvider {
 		}
 	}
 	
+	private void fetchWeather() {
+log.info("WEATHERPROVIDER");
+		
+		weatherDescription = "Ich konnte keine Daten zum jetzigen Wetter finden";
+    	int weatherId = 0; 
+    	
+        // Fetch weather data from openWeatherMap
+		try {
+			InputStream inputStream = new URL(fetchWeatherUrl).openStream();
+			BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
+	        StringBuilder sb = new StringBuilder();
+	        String line = "";
+	        
+	        // Build String from weather data json
+	        while ((line = br.readLine()) != null) {
+            	sb.append(line);
+	        }
+	        
+	        inputStream.close();
+	        // Get weather id from weather data
+	        JSONObject json = new JSONObject(sb.toString());
+	        JSONArray jsonArray = json.getJSONArray("weather");
+	        JSONObject currentWeather = jsonArray.getJSONObject(0);
+	        weatherId = currentWeather.getInt("id");
+		} catch (IOException e) {e.printStackTrace();}
+		
+        // Set weather attributes 
+		if(weatherId >= 200 && weatherId < 300) {
+			// Gewitter
+			weatherDescription = "soll es gewittern. ";
+			weatherGood = false; 
+		} else if(weatherId >= 300 && weatherId < 600) {
+			// leichter Regen
+			weatherDescription = "soll es regnen. ";
+			weatherGood = false; 
+		} else if(weatherId >= 600 && weatherId < 700) {
+			// Schnee
+			weatherDescription = "soll es scheien. ";
+			weatherGood = false; 
+		} else if(weatherId >= 700 && weatherId < 800) {
+			// Atmosphäre
+			weatherDescription = "soll es sehr neblig werden. ";
+			weatherGood = false; 
+		} else if(weatherId == 800) {
+			// Klar
+			weatherDescription = "soll es sonnig werden. ";
+			weatherGood = true; 
+		} else if(weatherId >= 801 && weatherId < 900) {
+			// Bewölkt
+			weatherDescription = "soll es bewölkt werden. ";
+			weatherGood = true; 
+		} else if(weatherId >= 900 && weatherId < 910) {
+			// Extrem
+			weatherDescription = "ist es wegen der Wetterbedingungen gefährlich raus zu gehen. ";
+			weatherGood = false; 
+		} else if (weatherId >= 951 && weatherId < 954) {
+			// Leichte Brise
+			weatherDescription = "soll eine leichte Brise wehen. ";
+			weatherGood = true; 
+		} else {
+			// Sehr windig
+			weatherDescription = "soll der Wind sehr stark wehen. ";
+			weatherGood = false; 
+		}
+	}
+	
 	public boolean isWeatherGood() {
+		//fetchWeather();
 		return weatherGood; 
 	}
 	
 	public String getWeatherDescription() {
+		//fetchWeather();
 		return weatherDescription; 
 	}
 	

@@ -32,7 +32,9 @@ public class User {
 	
 	public void printUser() {
 		Logger log = LoggerFactory.getLogger(SpaceGeekSpeechlet.class);
+		log.info("user nameSet: " + nameSet);
 		log.info("user name: " + name);
+		log.info("user speechStyleSet: " + speechStyleSet);
 		log.info("user formalSpeech: " + formalSpeech);
 		log.info("user setupComplete: " + setupComplete);
 	
@@ -57,6 +59,10 @@ public class User {
 		} else {
 			nameSet = false; 
 		}
+	}
+	
+	public void setNameSet(boolean nameSet) {
+		this.nameSet = nameSet; 
 	}
 	
 	public void setFormalSpeech(boolean formalSpeech) {
