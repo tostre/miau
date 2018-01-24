@@ -48,9 +48,9 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     		"anstrengend",
     		"anstrengende",
     		"anstrengendes",
-    		"erschöpfend", 
-    		"erschöpfende",
-    		"erschöpfendes",
+    		"erschï¿½pfend", 
+    		"erschï¿½pfende",
+    		"erschï¿½pfendes",
     		"aktiv", 
     		"aktive",
     		"aktives"
@@ -66,10 +66,10 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     		"im inneren"
     };
     private static final String[] LOCATIONS_OUTSIDE = new String[] {
-    		"draußen",
-    		"nach draußen",
+    		"drauï¿½en",
+    		"nach drauï¿½en",
     		"raus",
-    		"außer Haus",
+    		"auï¿½er Haus",
     		"unter freiem Himmel",
     		"im Freien",
     		"in der Sonne",
@@ -94,9 +94,9 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     private static final String[] BODYPARTS = new String[] {
     		"bein",
     		"beine", 
-    		"hüfte",
+    		"hï¿½fte",
     		"bauch",
-    		"rücken",
+    		"rï¿½cken",
     		"brust",
     		"arme",
     		"arm",
@@ -120,26 +120,26 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     		"kartenspiele"
     };
     private static final String[] ACTIVITY_TYPE_EXERCISE = new String[] {
-    		"übung",
-    		"üben",
+    		"ï¿½bung",
+    		"ï¿½ben",
     		"training",
     		"traineren"
     };
     private static final String[] ACTIVITY_TYPE_OCCUPATION = new String[] {
-    		"beschäftigung",
-    		"tätigkeit",
-    		"allgemeine beschäftigung",
-    		"allgemeine tätigket",
-    		"normale beschäftigung",
-    		"normale tätigkeit"
+    		"beschï¿½ftigung",
+    		"tï¿½tigkeit",
+    		"allgemeine beschï¿½ftigung",
+    		"allgemeine tï¿½tigket",
+    		"normale beschï¿½ftigung",
+    		"normale tï¿½tigkeit"
     };
     private static final String[] ACTIVITY_TYPE_ACTIVITY = new String[] {
-    		"beschäftigung",
-    		"tätigkeit",
-    		"allgemeine beschäftigung",
-    		"allgemeine tätigket",
-    		"normale beschäftigung",
-    		"normale tätigkeit"
+    		"beschï¿½ftigung",
+    		"tï¿½tigkeit",
+    		"allgemeine beschï¿½ftigung",
+    		"allgemeine tï¿½tigket",
+    		"normale beschï¿½ftigung",
+    		"normale tï¿½tigkeit"
     };
     private static final String[] SPEECHSTYLE_FORMAL = new String[] {
     		"siezen",
@@ -162,12 +162,12 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     		"drinnen etwas anstrengendes spielen zwei"
     };
 	String[] gameOutsideRelaxedDb = new String[] {
-	    	"draußen etwas entspanntes spielen eins",
-	    	"draußen etwas entspanntes spielen zwei"
+	    	"drauï¿½en etwas entspanntes spielen eins",
+	    	"drauï¿½en etwas entspanntes spielen zwei"
 	};
 	String[] gameOutsideExhaustingDb = new String[] {
-    		"draußen etwas anstrengendes spielen eins",
-    		"draußen etwas anstrengendes spielen zwei"
+    		"drauï¿½en etwas anstrengendes spielen eins",
+    		"drauï¿½en etwas anstrengendes spielen zwei"
 	};    
 	
 	// DB emulator activity
@@ -176,26 +176,26 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     		"drinnen etwas entspanntes tun zwei"
     };
     String[] occupationInsideExhaustingDb = new String[] {
-    		"draußen etwas anstrengendes tun eins",
-    		"draußen etwas anstrengendes tun zwei"
+    		"drauï¿½en etwas anstrengendes tun eins",
+    		"drauï¿½en etwas anstrengendes tun zwei"
 	};
 	String[] occupationOutsideRelaxedDb = new String[] {
-	    	"draußen etwas entspanntes tun eins",
-	    	"draußen etwas entspanntes tun zwei"
+	    	"drauï¿½en etwas entspanntes tun eins",
+	    	"drauï¿½en etwas entspanntes tun zwei"
 	};
 	String[] occupationOutsideExhaustingDb = new String[] {
-    		"draußen etwas anstrengendes tun eins",
-    		"draußen etwas anstrengendes tun zwei"
+    		"drauï¿½en etwas anstrengendes tun eins",
+    		"drauï¿½en etwas anstrengendes tun zwei"
 	};  
     
     // DB emulator exercise
     String[] exerciseInsideExhaustingDb = new String[] {
-    		"draußen etwas trainieren eins",
-    		"draußen etwas trainieren zwei"
+    		"drauï¿½en etwas trainieren eins",
+    		"drauï¿½en etwas trainieren zwei"
 	};
 	String[] exerciseOutsideExhaustingDb = new String[] {
-    		"draußen etwas trainieren eins",
-    		"draußen etwas trainieren zwei"
+    		"drauï¿½en etwas trainieren eins",
+    		"drauï¿½en etwas trainieren zwei"
 	};  
     
     // Conversation status variables
@@ -268,7 +268,7 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         
         
         
-        //TODO: Zeile unten löschen und schauen, warum er den Setup-Wert nicht korrekt aus der Datenbank nimmt 
+        //TODO: Zeile unten lï¿½schen und schauen, warum er den Setup-Wert nicht korrekt aus der Datenbank nimmt 
         user.setSetupComplete(true);
         log.info("user Setup:" + user.isSetupComplete());
         // This is the start of a user request
@@ -311,7 +311,10 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     }
     
     
-    
+    //testChange
+	public void testMethod(){
+    	
+	}
     
     
 	////////// SETUP AND USER DATA METHODS /////////////////////////////////////////////////////////////////////////////////////////
@@ -415,12 +418,12 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
 		user.setSetupComplete(true); 
 		database.saveUser(user);
 		
-		String output = "Nun gut, " + user.getName() + ", sie können mich nun nach Übungen, Spielen oder Beschäftigungen fragen";
+		String output = "Nun gut, " + user.getName() + ", sie kï¿½nnen mich nun nach ï¿½bungen, Spielen oder Beschï¿½ftigungen fragen";
 		
 		return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech(output));
 	}
 	
-	// TODO: namen-slot aufsetzen, dann namen in variable speichern, in db schreiben. Außerdem descriptionText beim ersten FDragen nach dem Namen ausgeben
+	// TODO: namen-slot aufsetzen, dann namen in variable speichern, in db schreiben. Auï¿½erdem descriptionText beim ersten FDragen nach dem Namen ausgeben
 	// Called when skill is first exectuted or user wants to change their name
 	private SpeechletResponse setUserName(Intent intent) {
 		log.info("SETUSERNAME");
