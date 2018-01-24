@@ -518,13 +518,11 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         if(exertionOutput != null) {
 	        return exertionOutput; 
         }
-        
-        
-        // Fetch game from db
-        String activityString = database.getGame(location, exertion);
-        activityString = database.getGameQ(location, exertion);
-        
-        
+
+		// Fetch name and description of the game from db
+		ArrayList<String> game = database.getGame(location, exertion);
+        String activityString = game.get(0) + ". " + game.get(1);
+
         // Generate output string
         if(weatherProvider.isWeatherGood()) {
         	proposal = speaker.getProposal() + activityString;
@@ -577,12 +575,11 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         if(bodypartOutput != null) {
 	        return bodypartOutput; 
         }
-        
-        
-        // Fetch exercise from db
-        String activityString = database.getExercise(location, bodypart);
-        
-        
+
+		// Fetch name and description of the game from db
+		ArrayList<String> exercise = database.getGame(location, bodypart);
+		String activityString = exercise.get(0) + ". " + exercise.get(1);
+
         // Generate output string
         if(weatherProvider.isWeatherGood()) {
         	proposal = speaker.getProposal() + activityString;
@@ -636,10 +633,11 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         if(exertionOutput != null) {
 	        return exertionOutput; 
         }
-        
-        
-        // Fetch game from db
-        String activityString = database.getOccupation(location, exertion);
+
+
+		// Fetch name and description of the game from db
+		ArrayList<String> occupation = database.getGame(location, exertion);
+		String activityString = occupation.get(0) + ". " + occupation.get(1);
         
         
         // Generate output string
