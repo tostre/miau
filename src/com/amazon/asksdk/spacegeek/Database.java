@@ -28,8 +28,6 @@ import com.amazonaws.services.dynamodbv2.model.CreateTableRequest;
 import com.amazonaws.services.dynamodbv2.model.KeySchemaElement;
 import com.amazonaws.services.dynamodbv2.model.ScanRequest;
 import com.amazonaws.services.dynamodbv2.model.ScanResult;
-import com.amazonaws.services.inspector.model.Attribute;
-import com.amazonaws.services.stepfunctions.model.ExecutionStartedEventDetails;
 
 public class Database {
 
@@ -191,27 +189,10 @@ public class Database {
 	// READ ACTIVITY DATA FROM DB //////////////////////////////
 	//////////////////////////////////////////////
 	
-	public String getGame(String location, String exertion) {
-		Table table = getTable(gamesTable);
-		GetItemSpec spec = new GetItemSpec().withPrimaryKey("id", 1);
-		
-		
-		try {
-			Item gameItem = table.getItem(spec);
-			
-			String game = gameItem.getString("name") + gameItem.getString("description");
-			
-			return game; 
-		} catch (Exception e){
-			return "Beim Abrufen des Spiels ist ein Fehler aufgetreten. Das tut mir leid, bitte versuche es später noch einmal ";
-		}
-	}
+
 	
-	public String getGameQ (String location, String exertion) {
-		
-		
-		
-		
+	public ArrayList<String> getGame (String location, String exertion) {
+		ArrayList<String> game = new ArrayList<>();
 		// Define filter expressions (bebause location is a protected name
 		Map<String, String> expressionAttributeNames = new HashMap<String, String>();
 		expressionAttributeNames.put("#loc", "location");
@@ -225,44 +206,111 @@ public class Database {
 		scanRequest.withFilterExpression("#loc = :loc AND #ext = :ext");
 		scanRequest.withExpressionAttributeNames(expressionAttributeNames);
 		scanRequest.withExpressionAttributeValues(expressionAttributeValues);
-		ScanResult result = client.scan(scanRequest);
-		
-		for (Map<String, AttributeValue> item : result.getItems()){
-		    //TODO: Fill database
-			//TODO: Get random entry from result (evtl. vorher in arraylist oder so übertragen) 
-			log.info("DB ENTRY NAME: " + item.toString());
+
+		try{
+			Map<String, AttributeValue> item = loadFromDb(scanRequest);
+			// Put key and description in arrayLIst to return
+			game.add(item.get("name").toString());
+			game.add(item.get("description").toString());
+			return game;
+
+		} catch (Exception e){
+			game.add("Beim Laden der Übung ist ein Fehler aufgetreten, das tut mir leid. Versuche es bitte später noch eimal");
+			game.add("");
+			return game;
 		}
-		
-		//greetingText = GREETINGS_INFORMAL[(int) Math.floor(Math.random() * GREETINGS_INFORMAL.length)];
-		
-        String out = "Es ist ein Fehler aufgetreten"; 
-        
-        /*
-        
-        try {
-            log.info("Try quering db");
-            
-            ItemCollection<ScanOutcome> items = table.scan(scanSpec);
-            
-            Iterator<Item> iter = items.iterator();
-            while (iter.hasNext()) {
-                Item item = iter.next();
-                System.out.println(item.toString());
-            }
+		/*
+		try{
+			// Write all items in list
+			ScanResult result = client.scan(scanRequest);
+			List<Map<String, AttributeValue>> items = result.getItems();
+			// Get random item from list (map holds several key-value-pairs)
+			Map<String, AttributeValue> item = items.get((int) Math.floor(Math.random() * items.size()));
+			// Get name and description by key-name
+			String name = item.get("name").toString();
+			String description = item.get("description").toString();
+			// Put key and description in arrayLIst to return
+			game.add(name);
+			game.add(description);
 
+			return game;
 
-        }
-        catch (Exception e) {
-            return out; 
-        }*/
-		return out;
+		} catch (Exception e){
+			game.add("Beim Laden des Spiels ist ein Fehler aufgetreten, das tut mir leid. Versuche es bitte später noch eimal");
+			game.add("");
+			return game;
+		}*/
 	}
 	
-	public String getExercise(String location, String bodypart) {
-		return "Eine Übung "; 
+	public ArrayList<String> getExercise(String location, String bodypart) {
+		ArrayList<String> exercise = new ArrayList<>();
+		// Define filter expressions (bebause location is a protected name
+		Map<String, String> expressionAttributeNames = new HashMap<String, String>();
+		expressionAttributeNames.put("#loc", "location");
+		expressionAttributeNames.put("#bod", "bodypart");
+		Map<String, AttributeValue> expressionAttributeValues = new HashMap<String, AttributeValue>();
+		expressionAttributeValues.put(":loc", new AttributeValue().withS(location));
+		expressionAttributeValues.put(":bod", new AttributeValue().withS(bodypart));
+		// Scan the table with defined filters
+		ScanRequest scanRequest = new ScanRequest();
+		scanRequest.withTableName(exercisesTable);
+		scanRequest.withFilterExpression("#loc = :loc AND #bod = :bod");
+		scanRequest.withExpressionAttributeNames(expressionAttributeNames);
+		scanRequest.withExpressionAttributeValues(expressionAttributeValues);
+
+
+		try{
+			Map<String, AttributeValue> item = loadFromDb(scanRequest);
+			// Put key and description in arrayLIst to return
+			exercise.add(item.get("name").toString());
+			exercise.add(item.get("description").toString());
+			return exercise;
+
+		} catch (Exception e){
+			exercise.add("Beim Laden der Übung ist ein Fehler aufgetreten, das tut mir leid. Versuche es bitte später noch eimal");
+			exercise.add("");
+			return exercise;
+		}
 	}
 	
-	public String getOccupation(String location, String exertion) {
-		return "Eine Beschäftigung "; 
+	public ArrayList<String> getOccupation(String location, String exertion) {
+		ArrayList<String> occupation = new ArrayList<>();
+		// Define filter expressions (bebause location is a protected name
+		Map<String, String> expressionAttributeNames = new HashMap<String, String>();
+		expressionAttributeNames.put("#loc", "location");
+		expressionAttributeNames.put("#ext", "exertion");
+		Map<String, AttributeValue> expressionAttributeValues = new HashMap<String, AttributeValue>();
+		expressionAttributeValues.put(":loc", new AttributeValue().withS(location));
+		expressionAttributeValues.put(":ext", new AttributeValue().withS(exertion));
+		// Scan the table with defined filters
+		ScanRequest scanRequest = new ScanRequest();
+		scanRequest.withTableName(occupationsTable);
+		scanRequest.withFilterExpression("#loc = :loc AND #ext = :ext");
+		scanRequest.withExpressionAttributeNames(expressionAttributeNames);
+		scanRequest.withExpressionAttributeValues(expressionAttributeValues);
+
+		try{
+			Map<String, AttributeValue> item = loadFromDb(scanRequest);
+			// Put key and description in arrayLIst to return
+			occupation.add(item.get("name").toString());
+			occupation.add(item.get("description").toString());
+			return occupation;
+
+		} catch (Exception e){
+			occupation.add("Beim Laden der Übung ist ein Fehler aufgetreten, das tut mir leid. Versuche es bitte später noch eimal");
+			occupation.add("");
+			return occupation;
+		}
+	}
+
+	// Returns random item from db specified in request
+	private Map<String, AttributeValue> loadFromDb(ScanRequest scanRequest) throws Exception {
+		// Write all items in list
+		ScanResult result = client.scan(scanRequest);
+		List<Map<String, AttributeValue>> items = result.getItems();
+		// Get random item from list (map holds several key-value-pairs)
+		Map<String, AttributeValue> item = items.get((int) Math.floor(Math.random() * items.size()));
+
+		return items.get((int) Math.floor(Math.random() * items.size()));
 	}
 }
