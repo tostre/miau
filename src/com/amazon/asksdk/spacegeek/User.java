@@ -21,93 +21,42 @@ public class User {
 	private boolean excludedBodypartsSet;
 	private boolean setupComplete; 
 	
-	public User(String id, String name, boolean formalSpeech, boolean setupComplete, ArrayList<String> excludedBodyparts) {
+	public User (String id, String name, boolean formalSpeech) {
 		this.id = id;
-		this.name = name + "";
+		this.name = name + " ";
 		this.nameAsk = name + "? ";
 		this.formalSpeech = formalSpeech;
-		this.excludedBodyparts = excludedBodyparts;
-		this.setupComplete = setupComplete;
 	}
 	
 	public void printUser() {
 		Logger log = LoggerFactory.getLogger(SpaceGeekSpeechlet.class);
-		log.info("user nameSet: " + nameSet);
+		log.info("user id: " + id);
 		log.info("user name: " + name);
-		log.info("user speechStyleSet: " + speechStyleSet);
 		log.info("user formalSpeech: " + formalSpeech);
-		log.info("user setupComplete: " + setupComplete);
+		log.info("user setup complete: " + setupComplete);
 	
 	}
 	
-	public void setId(String id) {
-		this.id = id; 
-		
-		if(id != null) {
-			idSet = true; 
-		} else {
-			idSet = false; 
-		}
-	}
-	
-	public void setName(String name) {
-		this.name = name + " "; 
-		this.nameAsk = name + "? "; 
-		
-		if(name != null) {
-			nameSet = true; 
-		} else {
-			nameSet = false; 
-		}
-	}
+	/////////////////////////////////////////////////////////////////////////////////////////
 	
 	public void setNameSet(boolean nameSet) {
 		this.nameSet = nameSet; 
-	}
-	
-	public void setFormalSpeech(boolean formalSpeech) {
-		this.formalSpeech = formalSpeech; 
-		speechStyleSet = true; 
 	}
 	
 	public void setSpeechStyleSet(boolean speechStyleSet) {
 		this.speechStyleSet = speechStyleSet; 
 	}
 	
-	public void setExcludedBodyparts(ArrayList<String> excludedBodyparts) {
-		this.excludedBodyparts = excludedBodyparts;
-	}
-	
 	public void setSetupComplete(boolean setupComplete) {
 		this.setupComplete = setupComplete;
-	}
-	
-	public String getId() {
-		return id; 
 	}
 	
 	public String getName() {
 		return name; 
 	}
 	
-	public String getNameAsk() {
-		return nameAsk; 
-	}
-	
-	public boolean isNameSet() {
-		return nameSet;
-	}
-	
-	public boolean isSpeechStyleSet() {
-		return speechStyleSet;
-	}
-	
 	public boolean preferesFormalSpeech() {
 		return formalSpeech; 
-	}
-	
-	public ArrayList<String> getExcludedBodyparts(){
-		return excludedBodyparts;
 	}
 	
 	public boolean isSetupComplete() {

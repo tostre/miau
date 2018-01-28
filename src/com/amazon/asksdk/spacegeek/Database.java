@@ -19,10 +19,13 @@ import com.amazonaws.services.dynamodbv2.document.ItemCollection;
 import com.amazonaws.services.dynamodbv2.document.QueryOutcome;
 import com.amazonaws.services.dynamodbv2.document.ScanOutcome;
 import com.amazonaws.services.dynamodbv2.document.Table;
+import com.amazonaws.services.dynamodbv2.document.UpdateItemOutcome;
 import com.amazonaws.services.dynamodbv2.document.spec.GetItemSpec;
 import com.amazonaws.services.dynamodbv2.document.spec.QuerySpec;
 import com.amazonaws.services.dynamodbv2.document.spec.ScanSpec;
 import com.amazonaws.services.dynamodbv2.document.spec.UpdateItemSpec;
+import com.amazonaws.services.dynamodbv2.document.utils.NameMap;
+import com.amazonaws.services.dynamodbv2.document.utils.ValueMap;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.CreateTableRequest;
 import com.amazonaws.services.dynamodbv2.model.KeySchemaElement;
@@ -45,154 +48,110 @@ public class Database {
 		dynamoDB = new DynamoDB(client);
 	}
 	
-	// Creates a new table with specified key schema
-	public void createTable(String tableName, List<KeySchemaElement> keySchema) {
-		CreateTableRequest req = new CreateTableRequest(tableName, keySchema);
-		dynamoDB.createTable(req);
-	}
-	
-	// returns a table specified by name
-	private Table getTable(String tableName) {
-		return dynamoDB.getTable(tableName);
-	}
-	
-	// Puts an item in a table, overwrites the old one if it already exists
-	public void putItem(String tableName, Item item) {
-		Table table = getTable(tableName);
-		table.putItem(item);
-	}
 	
 	
-	///////////////////////////////////////////////
-	// UNCOMPLETE METHODS //////////////////////////////
-	//////////////////////////////////////////////
 	
-	// TODO: Wirte this methode Updates an already existing item
-	public void updateItem() {
-		
-	}
 	
-	public void saveUser(String userId, String userName, List<String> excludedBodyparts, boolean formalSpeech, boolean setupComplete) {
-		Item item = new Item(); 
-		item.withString("id", userId);
-		item.withString("name", userName);
-		item.withList("exludedBodyParts", excludedBodyparts);
-		item.withBoolean("formalSpeech", formalSpeech);
-		item.withBoolean("firstSetupComplete", setupComplete);
-		
-		getTable(usersTable).putItem(item);
-	}
+	///////////////////////////////////////////////// READS USER DATA ////////////////////////////////////////////////////////////////////////////
 	
-	public void saveUser(User user) {
-		Item item = new Item(); 
-		item.withString("id", user.getId());
-		item.withString("name", user.getName());
-		item.withList("exludedBodyParts", user.getExcludedBodyparts());
-		item.withBoolean("formalSpeech", user.preferesFormalSpeech());
-		item.withBoolean("firstSetupComplete", user.isSetupComplete());
-		
-		getTable(usersTable).putItem(item);
-	}
 	
-	public void updateName(String userId, String userName) {
-		Map<String, String> attributeNames = new HashMap<String, String>();
-		attributeNames.put("id", userId);
-		
-		Map<String, Object> attributeValues = new HashMap<String, Object>();
-		attributeValues.put("name", userName);
-		
-		UpdateItemSpec spec = new UpdateItemSpec(); 
-		//AttributeUpdate update = new AttributeUpdate();
-		//update.
-		
-		//getTable(usersTable).up
-	}
-	
-	public void updateFormalSpeech(boolean formalSpeech) {
-		
-	}
-	
-	public void updateExcludedBodyparts(List<String> excludedBodyparts) {
-		// Get List of already excluded bodyparts
-		// Combine listst
-		// Save list
-	}
-	
-	///////////////////////////////////////////////
-	// READ USER DATA FROM DB //////////////////////////////
-	//////////////////////////////////////////////
-	
-	public User getUser(String userId) {
-		Table table = getTable(usersTable);
+	// Checks if a user already has an entry in the db
+	public boolean isUserKnown(String userId) {
+		log.info("isUserKnown?");
+		Table table = dynamoDB.getTable(usersTable);
 		GetItemSpec spec = new GetItemSpec().withPrimaryKey("id", userId);
 		
-		try {
-			Item userItem = table.getItem(spec);
-			
-			return new User(userItem.getString("id"), userItem.getString("name"), userItem.getBoolean("formalSpeech"), userItem.getBoolean("firstSetupComplete"), new ArrayList<String>(userItem.getStringSet("excludedBodyParts"))); 
-		} catch (Exception e){
-			return null;
+		Item user = table.getItem(spec);
+		
+		if(user != null) {
+			log.info("user is known");
+			return true; 
+		} else {
+			log.info("user is not known");
+			return false; 
 		}
 	}
 	
+	// Returns all user data from the db
+	public User getUser(String userId) {
+		Table table = dynamoDB.getTable(usersTable);
+		GetItemSpec spec = new GetItemSpec().withPrimaryKey("id", userId);
+		
+		Item user = table.getItem(spec);
+		
+		
+		String id = user.getString("id");
+		String name = user.getString("name");
+		boolean formalSpeech = user.getBoolean("formalSpeech");
+			
+		return new User(id, name, formalSpeech);
+	}
 	
-	public void createNewUser(String userId) {
-		Table table = getTable(usersTable);
-		//TODO: Create a new empty user (delete whatever is not needed)
-		//excludedBodyParts.add("schulter");
- 		//excludedBodyParts.add("knie");
- 		
- 		Item item = new Item(); 
- 		item.withNumber("id", 3);
- 		item.withString("name", "Walter");
- 		//item.withList("excludedBodyParts", excludedBodyParts);
+	// Saves a user in the db when he finished the setup
+	public void saveUser(String userId, String userName, boolean formalSpeech) {
+		Item item = new Item(); 
+		item.withString("id", userId);
+		item.withString("name", userName);
+		item.withBoolean("formalSpeech", formalSpeech);
 		
+		dynamoDB.getTable(usersTable).putItem(item);
+	}
+	
+	// Updates a users entry in the db (depending in the parameters) 
+	public void updateUser(String userId, String name, boolean formalSpeech, String bodypart) {
+		Table table = dynamoDB.getTable(usersTable);
+		ValueMap valueMap = new ValueMap();
+		NameMap nameMap = new NameMap(); 
+		UpdateItemSpec updateItemSpec = new UpdateItemSpec(); 
 		
-		table.putItem(item);
+		// Update the name
+		nameMap.with("#n", "name");
+		valueMap.withString(":n", name);
+		// Update speech style 
+		nameMap.with("#f", "formalspeech");
+		valueMap.withBoolean(":f", formalSpeech);
+		//Update bodyparts
+		List<String> pains = getPains(userId);
+		if(bodypart != null) {
+			pains.add(bodypart);
+		}
+		nameMap.with("#p", "pain");
+		valueMap.withList(":p", pains);
+		
+		// Save parameters in updatespec
+		updateItemSpec.withPrimaryKey("id", userId);
+		updateItemSpec.withUpdateExpression("set #n = :n, #f = :f, #p = :p");
+		updateItemSpec.withNameMap(nameMap);
+		updateItemSpec.withValueMap(valueMap);
+		
+		try {
+			UpdateItemOutcome outcome = table.updateItem(updateItemSpec);
+		} catch (Exception e) {
+			log.info("ERROR WHILE UPDATING: " + e.getMessage());
+		}
+	}
+	
+	// Reads the user-defined bodyparts of his profile als blacklist-items for exercises
+	public List<String> getPains(String userId){
+		Table table = dynamoDB.getTable(usersTable);
+		GetItemSpec spec = new GetItemSpec().withPrimaryKey("id", userId);
+		Item user = table.getItem(spec);
+		
+		return user.getList("pain"); 
 	}
 	
 	
 	
 	
 	
-	
-	//TODO: die beiden Strings ausgeben, gucken wie die aufgebaut sind und wie man den namen da raus bekommt 
-	public String getUserName(String userId) {
-		Table table = getTable(usersTable);
-		Item item = table.getItem("id", userId);
-		
-		String itemJson = item.toJSONPretty();
-		String itemString = item.toString(); 
-		
-		log.info("ITEMJSON: " + itemJson);
-		log.info("ITEMSTRING: " + itemString);
-		
-		return null; 
-	}
-	
-	public List<String> getExcludedBodyparts(String userId){
-		return null; 
-	}
-	
-	public boolean getFormalSpeech(String userId) {
-		
-		return false; 
-	}
-	
-	public boolean getFirstSetupComplete(String userId) {
-		return false; 
-	}
-	
-	
-	
-	///////////////////////////////////////////////
-	// READ ACTIVITY DATA FROM DB //////////////////////////////
-	//////////////////////////////////////////////
+	///////////////////////////////////////////////// LOAD ACTIVITY DATA FROM DB ////////////////////////////////////////////////////////////////////////////
 	
 
-	
+	// Loads a game from the db and returns it to the main class
 	public ArrayList<String> getGame (String location, String exertion) {
 		ArrayList<String> game = new ArrayList<>();
+		//List<String> pains = getPains(userId);
+		
 		// Define filter expressions (bebause location is a protected name
 		Map<String, String> expressionAttributeNames = new HashMap<String, String>();
 		expressionAttributeNames.put("#loc", "location");
@@ -206,7 +165,9 @@ public class Database {
 		scanRequest.withFilterExpression("#loc = :loc AND #ext = :ext");
 		scanRequest.withExpressionAttributeNames(expressionAttributeNames);
 		scanRequest.withExpressionAttributeValues(expressionAttributeValues);
-
+		
+        log.info("DBGAME:" + location);
+        log.info("DBGAME:" + exertion);
 		try{
 			Map<String, AttributeValue> item = loadFromDb(scanRequest);
 			// Put key and description in arrayLIst to return
@@ -215,34 +176,16 @@ public class Database {
 			return game;
 
 		} catch (Exception e){
-			game.add("Beim Laden der ‹bung ist ein Fehler aufgetreten, das tut mir leid. Versuche es bitte sp‰ter noch eimal");
+			log.info("LOADGAME EXCEPTION: " + e.getMessage());
+			game.add("Beim Laden der √úbung ist ein Fehler aufgetreten, das tut mir leid. Versuche es bitte sp√§ter noch eimal");
 			game.add("");
 			return game;
 		}
-		/*
-		try{
-			// Write all items in list
-			ScanResult result = client.scan(scanRequest);
-			List<Map<String, AttributeValue>> items = result.getItems();
-			// Get random item from list (map holds several key-value-pairs)
-			Map<String, AttributeValue> item = items.get((int) Math.floor(Math.random() * items.size()));
-			// Get name and description by key-name
-			String name = item.get("name").toString();
-			String description = item.get("description").toString();
-			// Put key and description in arrayLIst to return
-			game.add(name);
-			game.add(description);
-
-			return game;
-
-		} catch (Exception e){
-			game.add("Beim Laden des Spiels ist ein Fehler aufgetreten, das tut mir leid. Versuche es bitte sp‰ter noch eimal");
-			game.add("");
-			return game;
-		}*/
 	}
 	
-	public ArrayList<String> getExercise(String location, String bodypart) {
+	// Loads an exercise from the db and returns it to the main class
+	public ArrayList<String> getExercise(String userId, String location, String bodypart) {
+		log.info("DATABASE GETEXERCISE");
 		ArrayList<String> exercise = new ArrayList<>();
 		// Define filter expressions (bebause location is a protected name
 		Map<String, String> expressionAttributeNames = new HashMap<String, String>();
@@ -258,21 +201,45 @@ public class Database {
 		scanRequest.withExpressionAttributeNames(expressionAttributeNames);
 		scanRequest.withExpressionAttributeValues(expressionAttributeValues);
 
-
 		try{
+			// Counter so that the program doesnt get stuck while loading an unfitting exercise
+			int counter = 0; 
+			boolean exerciseContainsPain = true; 
 			Map<String, AttributeValue> item = loadFromDb(scanRequest);
-			// Put key and description in arrayLIst to return
-			exercise.add(item.get("name").toString());
-			exercise.add(item.get("description").toString());
-			return exercise;
+			String includedBodypart = item.get("bodypart").getS();
+			List<String> blacklistedBodyparts = getPains(userId);
+			// Repeat loading of an exercise, if the current one contains a blacklisted bodypart
+			while(exerciseContainsPain == true || counter >= 5) {
+				
+				if(blacklistedBodyparts.contains(includedBodypart)) {
+					log.info("√úbereinstimmung");
+					item = loadFromDb(scanRequest);
+					includedBodypart = item.get("bodypart").getS();
+				} else {
+					log.info("Keine √úbereinstimmung");
+					exercise.add(item.get("name").toString());
+					exercise.add(item.get("description").toString());
+					exerciseContainsPain = false; 
+				}
+			}
+			
+			if(exercise.isEmpty()) {
+				exercise.add("");
+				exercise.add("Es tut mir leid, ich konnte keine √úbung laden, die zu Ihren Angaben passt. Versuchen Sie es sp√§ter noch einmal, ich werde mich nach neuen √úbungen umschauen. ");
+			}
+			
+			return exercise; 
 
 		} catch (Exception e){
-			exercise.add("Beim Laden der ‹bung ist ein Fehler aufgetreten, das tut mir leid. Versuche es bitte sp‰ter noch eimal");
+			log.info("DATABASE GETEXERCISE CATCH");
+			log.info("EXERCISE ERROR: " + e.getMessage());
+			exercise.add("Beim Laden der √úbung ist ein Fehler aufgetreten, das tut mir leid. Versuche es bitte sp√§ter noch eimal");
 			exercise.add("");
 			return exercise;
 		}
 	}
-	
+
+	// Loads an occupation from the db and returns it to the main class
 	public ArrayList<String> getOccupation(String location, String exertion) {
 		ArrayList<String> occupation = new ArrayList<>();
 		// Define filter expressions (bebause location is a protected name
@@ -297,7 +264,7 @@ public class Database {
 			return occupation;
 
 		} catch (Exception e){
-			occupation.add("Beim Laden der ‹bung ist ein Fehler aufgetreten, das tut mir leid. Versuche es bitte sp‰ter noch eimal");
+			occupation.add("Beim Laden der Besch√§ftigung ist ein Fehler aufgetreten, das tut mir leid. Versuche es bitte sp√§ter noch eimal");
 			occupation.add("");
 			return occupation;
 		}
@@ -309,8 +276,6 @@ public class Database {
 		ScanResult result = client.scan(scanRequest);
 		List<Map<String, AttributeValue>> items = result.getItems();
 		// Get random item from list (map holds several key-value-pairs)
-		Map<String, AttributeValue> item = items.get((int) Math.floor(Math.random() * items.size()));
-
 		return items.get((int) Math.floor(Math.random() * items.size()));
 	}
 }

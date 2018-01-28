@@ -20,8 +20,6 @@ public class WeatherProvider {
     private boolean weatherGood = true;
 	
 	public WeatherProvider() {
-		log.info("WEATHERPROVIDER");
-		
 		weatherDescription = "Ich konnte keine Daten zum jetzigen Wetter finden";
     	int weatherId = 0; 
     	
@@ -59,7 +57,7 @@ public class WeatherProvider {
 			weatherDescription = "soll es scheien. ";
 			weatherGood = false; 
 		} else if(weatherId >= 700 && weatherId < 800) {
-			// Atmosphäre
+			// Atmosphï¿½re
 			weatherDescription = "soll es sehr neblig werden. ";
 			weatherGood = false; 
 		} else if(weatherId == 800) {
@@ -67,12 +65,12 @@ public class WeatherProvider {
 			weatherDescription = "soll es sonnig werden. ";
 			weatherGood = true; 
 		} else if(weatherId >= 801 && weatherId < 900) {
-			// Bewölkt
-			weatherDescription = "soll es bewölkt werden. ";
+			// Bewï¿½lkt
+			weatherDescription = "soll es bewÃ¶lkt werden. ";
 			weatherGood = true; 
 		} else if(weatherId >= 900 && weatherId < 910) {
 			// Extrem
-			weatherDescription = "ist es wegen der Wetterbedingungen gefährlich raus zu gehen. ";
+			weatherDescription = "ist es wegen der Wetterbedingungen gefÃ¤hrlich raus zu gehen. ";
 			weatherGood = false; 
 		} else if (weatherId >= 951 && weatherId < 954) {
 			// Leichte Brise
@@ -84,10 +82,8 @@ public class WeatherProvider {
 			weatherGood = false; 
 		}
 	}
-	
-	private void fetchWeather() {
-log.info("WEATHERPROVIDER");
-		
+
+	public void fetchWeather() {
 		weatherDescription = "Ich konnte keine Daten zum jetzigen Wetter finden";
     	int weatherId = 0; 
     	
@@ -125,7 +121,7 @@ log.info("WEATHERPROVIDER");
 			weatherDescription = "soll es scheien. ";
 			weatherGood = false; 
 		} else if(weatherId >= 700 && weatherId < 800) {
-			// Atmosphäre
+			// Atmosphï¿½re
 			weatherDescription = "soll es sehr neblig werden. ";
 			weatherGood = false; 
 		} else if(weatherId == 800) {
@@ -133,12 +129,12 @@ log.info("WEATHERPROVIDER");
 			weatherDescription = "soll es sonnig werden. ";
 			weatherGood = true; 
 		} else if(weatherId >= 801 && weatherId < 900) {
-			// Bewölkt
-			weatherDescription = "soll es bewölkt werden. ";
+			// Bewï¿½lkt
+			weatherDescription = "soll es bewÃ¶lkt werden. ";
 			weatherGood = true; 
 		} else if(weatherId >= 900 && weatherId < 910) {
 			// Extrem
-			weatherDescription = "ist es wegen der Wetterbedingungen gefährlich raus zu gehen. ";
+			weatherDescription = "ist es wegen der Wetterbedingungen gefÃ¤hrlich raus zu gehen. ";
 			weatherGood = false; 
 		} else if (weatherId >= 951 && weatherId < 954) {
 			// Leichte Brise
@@ -149,10 +145,14 @@ log.info("WEATHERPROVIDER");
 			weatherDescription = "soll der Wind sehr stark wehen. ";
 			weatherGood = false; 
 		}
+		
+		log.info("WEATHER GOOD" + weatherGood);
+		log.info("WEATHER ID" + weatherId);
+		log.info("WEATHER DESC" + weatherDescription);
 	}
 	
 	public boolean isWeatherGood() {
-		//fetchWeather();
+		fetchWeather();
 		return weatherGood; 
 	}
 	
