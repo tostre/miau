@@ -78,7 +78,7 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     		"im inneren"
     };
     private static final String[] LOCATIONS_OUTSIDE = new String[] {
-    		"drauẞen",
+    		"draußen",
     		"nach draußen",
     		"raus",
     		"außer Haus",
@@ -100,6 +100,7 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     		"nacken",
     		"kopf",
     		"knie",
+    		"rücken"
     };
     private static final String[] SPEECHSTYLE_FORMAL = new String[] {
     		"siezen",
@@ -130,8 +131,8 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
 	// Called when application is launched from keyword ("Starte Fakten")
     public SpeechletResponse onLaunch(SpeechletRequestEnvelope<LaunchRequest> requestEnvelope) {
     	init(requestEnvelope.getSession()); 
-    	String output = "Hallo " + user.getName() + speaker.getGreetingText();
-        return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech(output));
+    	String output = "Hallo " + speaker.getGreetingText();
+        return SpeechletResponse.newAskResponse(getPlainTextOutputSpeech(output), getReprompt(getPlainTextOutputSpeech(output)));
     }
 
     // TODO: Checken ob setup komplett ist 
@@ -141,7 +142,16 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         String intentName = (intent != null) ? intent.getName() : null;
         session = requestEnvelope.getSession();
         init(session); 
+        log.info(intentName);
         
+        // If it's a built-in intent, handle it first
+        if(intentName == "AMAZON.CancelIntent") {
+        	return cancelDialogue();
+        } else if(intentName == "AMAZON.StopIntent") {
+        	return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech(speaker.getGoodbyeText()));
+        } else if(intentName == "AMAZON.HelpIntent") {
+        	return getAskResponse("Trainer", speaker.getHelpText());
+        }
         
         // This is the start of a user request
         if(!user.isSetupComplete()) {
@@ -153,22 +163,21 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
             	return getGame(intent, session);
         	case "GetExerciseIntent":
             	return getExercise(intent, session);
-        	case "GetOccupationIntent":
-        		return getOccupation(intent, session);
+        	//case "GetOccupationIntent":
+        		//return getOccupation(intent, session);
         	case "changeNameIntent": 
         		return changeName(intent, session); 
-        	case "changeSpeechSytleIntent":
+        	case "SetFormalSpeechIntent":
         		return changeSpeechStyle(intent);
         	case "addPain":
         		return addPain(intent);
-            case "AMAZON.HelpIntent":
+            /*case "AMAZON.HelpIntent":
             	return getAskResponse("Trainer", speaker.getHelpText());
         	case "AMAZON.StopIntent":
                 return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech(speaker.getGoodbyeText()));
         	case "AMAZON.CancelIntent": 
-        		clear(); 
-        		return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech(speaker.getCancelText()));
-            default: 
+        		return cancelDialogue();
+            */default: 
             	String output = "Das habe ich leider nicht verstanden. " + speaker.getHelpText();
             	//return SpeechletResponse.newAskResponse(getPlainTextOutputSpeech(output), getReprompt(getPlainTextOutputSpeech(output)));
             	return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech(output));
@@ -180,8 +189,8 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
 	        		return getGame(intent, session);
 	        	case "exercise":
 	        		return getExercise(intent, session);
-	        	case "activity": 
-	        		return getOccupation(intent, session);
+	        	//case "activity": 
+	        		//return getOccupation(intent, session);
 	        	case "changeName":
 	        		return changeName(intent, session);
 	        	case "changeSpeech": 
@@ -189,7 +198,8 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
 	        	case "addPain":
 	        		return addPain(intent);
 	        	default: 
-	        		return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech(speaker.getErrorText()));
+	        		String output = type + ", " + intentName + ", " + speaker.getErrorText();
+	        		return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech(output));
 	        	}
 	        }
         }
@@ -224,6 +234,8 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     		setupComplete = true; 
     		log.info("this user is known: ");
     		user.printUser();
+    		userName = database.getUserName(userId);
+    		log.info("INIT USERNAME: " + userName);
     	} else {
     		user = new User(userId, null, true);
     		user.setSetupComplete(false);
@@ -262,7 +274,9 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         	nameSet = true;
         	clear(); 
         	String output = "Verstanden " + userName + ", ich habe mir deinen Namen gemerkt.";
-        	return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech(output));
+        	SpeechletResponse out = SpeechletResponse.newTellResponse(getPlainTextOutputSpeech(output));
+        	out.setShouldEndSession(true);
+        	return out; 
         } else {
         	// Kein Name angegeben, nachfragen
         	nameSet = false; 
@@ -280,26 +294,28 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     	// Check if name was provided
         if(speechSlot != null && speechSlot.getValue() != null && !speechSlot.getValue().equalsIgnoreCase("")){
         	String style = speechSlot.getValue().toLowerCase();
-        	
         	if(Arrays.asList(SPEECHSTYLE_FORMAL).contains(style)) {
 	        	formalSpeech = true; 
 	        	speechStyleSet = true; 
-	        	database.updateUser(userId, userName, formalSpeech,null);
-	        	
+	        	database.updateUser(userId, userName, formalSpeech, null);
+	        	clear();
 	        	String output = "Verstanden " + userName + ", ich werde Sie ab jetzt siezen.";
-	        	return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech(output));
-	        } 
+	        	SpeechletResponse out = SpeechletResponse.newTellResponse(getPlainTextOutputSpeech(output));
+	        	out.setShouldEndSession(true);
+	        	return out; 
+        	} 
 	        
 	        if (Arrays.asList(SPEECHSTYLE_INFORMAL).contains(style)) {
 	        	formalSpeech = false; 
 	        	speechStyleSet = true; 
 	        	database.updateUser(userId, userName, formalSpeech, null);
-	        	
+	        	clear();
 	        	String output = "Verstanden " + userName + ", ich werde Dich ab jetzt duzen.";
-	        	return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech(output));
+	        	SpeechletResponse out = SpeechletResponse.newTellResponse(getPlainTextOutputSpeech(output));
+	        	out.setShouldEndSession(true);
+	        	return out;
 	        }
         	
-        	clear(); 
         	
         } else {
         	// Kein Name angegeben, nachfragen
@@ -324,7 +340,8 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
 	        	database.updateUser(userId, userName, formalSpeech, bodypart);
 	        	//145
 	        	
-	        	String output = "Verstanden " + userName + ", ich merke mir " + bodypart + " Ich werde darauf achten, ab jetzt keine Übungen mehr vorzuschlagen, die den Körperteil weiter belasten";
+	        	String output = "Verstanden " + userName + ", ich merke mir " + bodypart + ". Ich werde darauf achten, ab jetzt keine Übungen mehr vorzuschlagen, die den Körperteil weiter belasten";
+	        	clear();
 	        	return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech(output));
 	        } 
 	        
@@ -338,6 +355,10 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
 		return null;
     }
     
+    
+    
+    
+    
     /////////////////////////////////////////// SETUP CYCLE ///////////////////////////////////////////////////////////////////////////////////////
     
     // Called when the user starts the skill for the first time
@@ -345,13 +366,20 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         SpeechletResponse nameOutput = null; 
         SpeechletResponse formalOutput = null;
        
-        // Check if all data was provided
-        if(!nameSet) {
-    		nameOutput = setUserName(intent); 	
+        if(intent != null) {
+        	// Check if all data was provided
+            if(!nameSet) {
+        		nameOutput = setUserName(intent); 	
+            }
+            if(!speechStyleSet) {
+            	formalOutput = setSpeechStyle(intent);
+            }
+        } else {
+        	nameOutput = null;
+        	formalOutput = null; 
         }
-        if(!speechStyleSet) {
-        	formalOutput = setSpeechStyle(intent);
-        }
+        
+        
         
         // Ask for missing params
         if(nameOutput != null) {
@@ -364,8 +392,15 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
 		user.setSetupComplete(true); 
 		database.saveUser(userId, userName, formalSpeech);
 		
-		String output = "Nun gut " + userName + ", sie können mich nun nach Übungen, Spielen oder Beschäftigungen fragen. Sie können außerdem jederzeit Ihren Namen ändern oder mir mittleilen, ob Sie Probleme mit bestimmten Körperteilen haben. Ich werde diese Informationen in meinen Vorschlägen berücksichtigen";
-		return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech(output));
+		if (formalSpeech) {
+			String output = "Nun gut " + userName + ", sie können mich nun nach Übungen, Spielen oder Beschäftigungen fragen. Sie können außerdem jederzeit Ihren Namen ändern oder mir mitteilen, ob Sie Probleme mit bestimmten Körperteilen haben. Ich werde diese Informationen in meinen Vorschlägen berücksichtigen";
+			return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech(output));
+		} else {
+			String output = "Nun gut " + userName + ", du kannst mich nun nach Übungen, Spielen oder Beschäftigungen fragen. Du kannst außerdem jederzeit Deinen Namen ändern oder mir mitteilen, ob Du Probleme mit bestimmten Körperteilen hast. Ich werde diese Informationen in meinen Vorschlägen berücksichtigen";
+			return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech(output));
+			
+		}
+		
 	}
 	
 	// Called when user has set no name, generates aksOutput
@@ -389,7 +424,7 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
 	
 	// Called when user has not specified a speech style yet, generates aksOutput
     private SpeechletResponse setSpeechStyle(Intent intent) {
-    	Slot styleSlot = intent.getSlot("formalSpeechType");
+    	Slot styleSlot = intent.getSlot("speechStyle");
     	
     	
     	// Check if speech style was provided
@@ -415,7 +450,7 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         }
     }
     
-    
+
     
     
     
@@ -451,15 +486,24 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         String activityString = game.get(0) + ". " + game.get(1);
 
         // Generate output string
-        if(weatherProvider.isWeatherGood()) {
+        if(game.get(0).equals("")) {
+        	// Couldnt load game
+        	proposal = game.get(1);
+        } else if(weatherProvider.isWeatherGood()) {
+        	// Successfully loaded game
         	proposal = speaker.getProposal() + activityString;
         } else {
+        	// Bad weather
         	proposal = "Heute " + weatherProvider.getWeatherDescription() + speaker.getBadWeatherInfo() + speaker.getProposal() + activityString;
         }
         
         clear(); 
+        typeSet = false;
+        type = null;
         // Generate output speech
-        return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech(proposal));
+        SpeechletResponse out = SpeechletResponse.newTellResponse(getPlainTextOutputSpeech(proposal));
+        out.setShouldEndSession(true);
+        return out;
     }
     
     // Returns an exercise for the user 
@@ -488,19 +532,29 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         }
 
 		// Fetch name and description of the game from db
-		ArrayList<String> exercise = cleanArray(database.getExercise(userId, location, bodypart));
+        ArrayList<String> exercise = database.getExercise(userId, location, bodypart);
+		exercise = cleanArray(exercise);
 		String activityString = exercise.get(0) + ". " + exercise.get(1);
-
-        // Generate output string
-        if(weatherProvider.isWeatherGood()) {
+		String activityTitle = exercise.get(0);
+		//String activityCard = exercise.get(2);
+		
+		// Generate output string
+		if(exercise.get(0).equals("")) {
+			// Konnte keine Übung laden...
+			proposal = exercise.get(1);  
+		} else if(weatherProvider.isWeatherGood()) {
         	proposal = speaker.getProposal() + activityString;
         } else {
         	proposal = "Heute " + weatherProvider.getWeatherDescription() + speaker.getBadWeatherInfo() + speaker.getProposal() + activityString;
         }
         
         clear(); 
+        typeSet = false;
+        type = null;
         // Generate output speech
-        return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech(proposal));
+        SpeechletResponse out = SpeechletResponse.newTellResponse(getPlainTextOutputSpeech(proposal), getSimpleCard(activityTitle, "Hier die Beschreibung, wenn es funktionieren würde"));
+        out.setShouldEndSession(true);
+        return out;
     }
     
     // Returns an occupation for the user 
@@ -541,8 +595,12 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
         }
         
         clear(); 
+        typeSet = false;
+        type = null;
         // Generate output speech
-        return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech(proposal));
+        SpeechletResponse out = SpeechletResponse.newTellResponse(getPlainTextOutputSpeech(proposal));
+        out.setShouldEndSession(true);
+        return out;
     }
 
     // Checks if location was provided, if not, asks for it
@@ -558,11 +616,13 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
 	        
 		        if(Arrays.asList(LOCATIONS_INSIDE).contains(location)) {
 		        	this.location = "inside";
+		        	location = "inside";
 		        	locationSet = true; 
 		        	} 
 		        
 		        if (Arrays.asList(LOCATIONS_OUTSIDE).contains(location)) {
 		        	this.location = "outside";
+		        	location = "outside";
 		        	locationSet = true; 
 		        }
 		        
@@ -640,10 +700,9 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
 	        return null; 
 	        
         } else {
-        	// Kein bodypart angegeben, nachfragen
-        	bodypartSet = false; 
+    		bodypartSet = false; 
         	return SpeechletResponse.newAskResponse(getPlainTextOutputSpeech(speaker.getAskForBodypart()), getReprompt(getPlainTextOutputSpeech(speaker.getAskForBodypartRe())));
-        }
+    	}
     }
     
     
@@ -651,6 +710,13 @@ public class SpaceGeekSpeechlet implements SpeechletV2 {
     
     
     ////////// HELPER FUNCTIONS /////////////////////////////////////////////////////////////////////////////////////////
+    
+    
+    // Cancels the current dialogue
+    private SpeechletResponse cancelDialogue() {
+    	clear(); 
+    	return SpeechletResponse.newTellResponse(getPlainTextOutputSpeech(speaker.getCancelText()));
+    }
     
     // Cleans a string from the DB 
     private ArrayList<String> cleanArray(ArrayList<String> dirtyArrayList) {

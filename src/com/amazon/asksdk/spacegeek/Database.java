@@ -87,12 +87,27 @@ public class Database {
 		return new User(id, name, formalSpeech);
 	}
 	
+	
+	public String getUserName(String userId) {
+		Table table = dynamoDB.getTable(usersTable);
+		GetItemSpec spec = new GetItemSpec().withPrimaryKey("id", userId);
+		
+		Item user = table.getItem(spec);
+	
+		String name = user.getString("name");
+		
+			
+		return name;
+	}
+	
 	// Saves a user in the db when he finished the setup
 	public void saveUser(String userId, String userName, boolean formalSpeech) {
 		Item item = new Item(); 
 		item.withString("id", userId);
 		item.withString("name", userName);
 		item.withBoolean("formalSpeech", formalSpeech);
+		List<String> list = new ArrayList<String>();
+		item.withList("pain", list);
 		
 		dynamoDB.getTable(usersTable).putItem(item);
 	}
@@ -108,11 +123,11 @@ public class Database {
 		nameMap.with("#n", "name");
 		valueMap.withString(":n", name);
 		// Update speech style 
-		nameMap.with("#f", "formalspeech");
+		nameMap.with("#f", "formalSpeech");
 		valueMap.withBoolean(":f", formalSpeech);
 		//Update bodyparts
 		List<String> pains = getPains(userId);
-		if(bodypart != null) {
+		if(bodypart != null && !pains.contains(bodypart)) {
 			pains.add(bodypart);
 		}
 		nameMap.with("#p", "pain");
@@ -151,6 +166,8 @@ public class Database {
 	public ArrayList<String> getGame (String location, String exertion) {
 		ArrayList<String> game = new ArrayList<>();
 		//List<String> pains = getPains(userId);
+		log.info("DB GetGame Loc: " + location);
+		log.info("DB GetGame Ext: " + exertion);
 		
 		// Define filter expressions (bebause location is a protected name
 		Map<String, String> expressionAttributeNames = new HashMap<String, String>();
@@ -177,8 +194,8 @@ public class Database {
 
 		} catch (Exception e){
 			log.info("LOADGAME EXCEPTION: " + e.getMessage());
-			game.add("Beim Laden der Übung ist ein Fehler aufgetreten, das tut mir leid. Versuche es bitte später noch eimal");
 			game.add("");
+			game.add("Ich konnte kein Spiel zu den angegebenen Parametern finden, das tut mir leid. Versuche es bitte später noch eimal");
 			return game;
 		}
 	}
@@ -186,6 +203,8 @@ public class Database {
 	// Loads an exercise from the db and returns it to the main class
 	public ArrayList<String> getExercise(String userId, String location, String bodypart) {
 		log.info("DATABASE GETEXERCISE");
+		log.info("load ex, loc: " + location);
+		log.info("load ex, bod: " + bodypart);
 		ArrayList<String> exercise = new ArrayList<>();
 		// Define filter expressions (bebause location is a protected name
 		Map<String, String> expressionAttributeNames = new HashMap<String, String>();
@@ -209,7 +228,10 @@ public class Database {
 			String includedBodypart = item.get("bodypart").getS();
 			List<String> blacklistedBodyparts = getPains(userId);
 			// Repeat loading of an exercise, if the current one contains a blacklisted bodypart
-			while(exerciseContainsPain == true || counter >= 5) {
+			
+			
+			
+			while(exerciseContainsPain == true && counter <= 5) {
 				
 				if(blacklistedBodyparts.contains(includedBodypart)) {
 					log.info("Übereinstimmung");
@@ -217,15 +239,19 @@ public class Database {
 					includedBodypart = item.get("bodypart").getS();
 				} else {
 					log.info("Keine Übereinstimmung");
-					exercise.add(item.get("name").toString());
-					exercise.add(item.get("description").toString());
+					exercise.add(0, item.get("name").toString());
+					exercise.add(1, item.get("description").toString());
+					exercise.add(2, item.get("card").toString());
 					exerciseContainsPain = false; 
 				}
+				
+				counter++; 
 			}
 			
 			if(exercise.isEmpty()) {
-				exercise.add("");
-				exercise.add("Es tut mir leid, ich konnte keine Übung laden, die zu Ihren Angaben passt. Versuchen Sie es später noch einmal, ich werde mich nach neuen Übungen umschauen. ");
+				exercise.add(0, "");
+				exercise.add(1, "Es tut mir leid, ich konnte keine Übung laden, die zu den Angaben passt. Versuchen Sie es später noch einmal, ich werde mich nach neuen Übungen umschauen. ");
+				exercise.add(2, "Es ist ein Fehler aufgetreten");
 			}
 			
 			return exercise; 
@@ -233,8 +259,9 @@ public class Database {
 		} catch (Exception e){
 			log.info("DATABASE GETEXERCISE CATCH");
 			log.info("EXERCISE ERROR: " + e.getMessage());
-			exercise.add("Beim Laden der Übung ist ein Fehler aufgetreten, das tut mir leid. Versuche es bitte später noch eimal");
-			exercise.add("");
+			exercise.add(0, "");
+			exercise.add(1, "Leider kenne ich keine Übung die zu den Angaben passt. Ich gebe mir Mühe schnell neue Übungen zu lernen");
+			exercise.add(2 ,"Ich konnte keine passende Übung finden");
 			return exercise;
 		}
 	}

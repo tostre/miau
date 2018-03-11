@@ -8,7 +8,7 @@ public class SpeechProvider {
     String goodbyeText = "Bis zum nächsten Mal ";
     String badWeatherInfo = "Ich würde daher empfehlen drinnen zu bleiben. ";
     String greetingText = "Hallo, fragen Sie mich nach einem Spiel, einer Übung oder einer Beschäftigung ";
-    String introductionText = "Hallo, freut mich Sie kennenzulernen. Ich kann Ihnen verschiedene Spiele, Übungen oder Beschäftigungen vorschlagen. Zuerst muss ich Ihnen aber ein paar Fragen stellen, um Sie besser kennenzulernen. ";
+    String introductionText = "Hallo, freut mich Sie kennenzulernen. Ich kann Ihnen verschiedene Spiele, Übungen oder Beschäftigungen vorschlagen. Zuerst muss ich Ihnen aber ein paar Fragen stellen um Sie besser kennenzulernen. ";
     
     String helpText = "leer";
     String helpTextF = "Ich kann verschiedene Aktivitäten, Spiele und Übungen, drinnen oder draußen, vorschlagen. Fragen Sie mich einfach nach einem Spiel, einer Übung oder einer Beschäftigung. Alles Weitere klären wir darauf gemeinsam ";
@@ -62,9 +62,9 @@ public class SpeechProvider {
     		"Das hier klingt nach einer guten Beschäftigung: "
     };
     private static final String[] GREETINGS_FORMAL = new String[] {
-    		"Hallo, wie kann ich Ihnen helfen ",
-    		"Was kann ich ür Sie tun ",
-    		"Kann ich Ihnen eine Aktivität für heute empfehlen ",
+    		"Hallo, wie kann ich Ihnen helfen? ",
+    		"Was kann ich ür Sie tun? ",
+    		"Kann ich Ihnen eine Aktivität für heute empfehlen? ",
     };
     private static final String[] GREETINGS_INFORMAL = new String[] {
     		"Hallo, wie kann ich Dir helfen ",
